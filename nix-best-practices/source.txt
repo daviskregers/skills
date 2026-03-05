@@ -1,0 +1,2 @@
+source: https://github.com/0xBigBoss/claude-code/tree/main/.claude/skills/nix-best-practices
+commit: 81a2de0
