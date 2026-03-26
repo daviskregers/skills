@@ -193,4 +193,5 @@ tell the user the file path returned by the tool and a one-line summary
 - Do NOT modify any source code files.
 - Do NOT suggest fixes inline by editing — only describe the issues.
 - Do NOT output the full review in the conversation — save it to the file only.
-- The ONLY file you may create is the review output under `.code-review/`.
+- The ONLY file you may create is the review output under `.ai-artifacts/`.
+- Do NOT automatically fix or address any review findings. The review is for the user to read and decide what to act on. After saving the review, STOP. Do not proceed to implement fixes unless the user explicitly asks you to.
