@@ -35,7 +35,13 @@ or `services/accounts/infra/grafana.ts`, not `grafana.ts`).
   - Environment and secrets management (hard-coded credentials, missing
     `.env` in `.gitignore`, secrets committed to the repo)
   - Terraform / IaC issues (hard-coded values, missing state locking,
-    overly permissive IAM policies)
+    overly permissive IAM policies, security groups, or network ACLs
+    — e.g. using 10.0.0.0/8 when only the VPC CIDR is needed)
+  - Cross-stack or cross-module resource dependencies without explicit
+    ordering (e.g. referencing a Lambda ARN from another stack without
+    `dependsOn` or a documented deployment order)
+  - Credentials or secrets transmitted over plaintext HTTP (code that
+    conditionally falls back to HTTP when HTTPS should be enforced)
 - Production readiness (when applicable):
   - Default or well-known credentials left in environment variables,
     docker-compose files, Helm values, or config files (PostgreSQL `POSTGRES_PASSWORD` set to "postgres",
@@ -54,6 +60,27 @@ or `services/accounts/infra/grafana.ts`, not `grafana.ts`).
 ### Warnings
 - Performance concerns
 - Error handling gaps
+- Silent failure paths (dead-letter queues, error queues, or retry
+  mechanisms with no monitoring or alerting — failures accumulate
+  undetected)
+- Misleading variable or config names that imply a specific format
+  but contain a different one (e.g. `SECRET_ARN` holding a name,
+  `ENDPOINT_URL` holding an IP) — causes functional bugs in
+  downstream consumers, not just readability issues
+- Implicit runtime dependencies — code that imports a module
+  without declaring it in the package manifest, relying on the
+  execution environment to provide it (e.g. AWS SDK in Lambda
+  runtime, system packages in a Docker base image). A runtime
+  update can silently break the dependency.
+- Unencrypted at-rest storage for potentially sensitive data —
+  queues, buckets, or other storage receiving application data
+  (log events, request payloads, error details) without encryption
+  at rest configured
+- Phantom lockfile or manifest entries — lockfile importers,
+  workspace entries, or monorepo configs referencing packages or
+  directories that do not exist in the codebase. Indicates
+  incomplete PRs, orphaned scaffolding, or build configs that
+  will break in CI.
 - Race conditions or concurrency issues
 - Unnecessary cloud/infrastructure costs (when applicable):
   - Duplicate or redundant resources that could be consolidated
@@ -74,7 +101,19 @@ or `services/accounts/infra/grafana.ts`, not `grafana.ts`).
 - Code style and readability improvements
 - Naming improvements
 - Opportunities to reduce duplication
-- Missing or inadequate comments on complex logic
+- Missing, inadequate, or stale comments on complex logic (comments
+  that describe behavior no longer matching the code are worse than
+  no comments)
+- Hardcoded infrastructure values (IPs, CIDRs, ports, domain names,
+  ARNs) that should be centralized as named constants, especially
+  when a shared constant already exists in the codebase
+- Same logical config value expressed in different units without
+  derivation (e.g. retention as `1209600` seconds in one place and
+  `14` days in another) — define once and compute the other to
+  prevent drift
+- Dead or unused exports — exported symbols, constants, or functions
+  with no consumers in the codebase, especially in shared modules
+  where the public API surface should be kept minimal
 
 ## Output Format
 
