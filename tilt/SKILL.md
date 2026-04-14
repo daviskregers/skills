@@ -7,10 +7,8 @@ description: Queries Tilt resource status, logs, and manages dev environments. U
 
 ## First Action: Check for Errors
 
-Before investigating issues or verifying deployments, check resource health:
-
 ```bash
-# Find errors and pending resources (primary health check)
+# Find errors/pending resources
 tilt get uiresources -o json | jq -r '.items[] | select(.status.runtimeStatus == "error" or .status.updateStatus == "error" or .status.updateStatus == "pending") | "\(.metadata.name): runtime=\(.status.runtimeStatus) update=\(.status.updateStatus)"'
 
 # Quick status overview
@@ -18,8 +16,6 @@ tilt get uiresources -o json | jq '[.items[].status.updateStatus] | group_by(.) 
 ```
 
 ## Non-Default Ports
-
-When Tilt runs on a non-default port, add `--port`:
 
 ```bash
 tilt get uiresources --port 37035
@@ -29,19 +25,12 @@ tilt logs <resource> --port 37035
 ## Resource Status
 
 ```bash
-# All resources with status
 tilt get uiresources -o json | jq '.items[] | {name: .metadata.name, runtime: .status.runtimeStatus, update: .status.updateStatus}'
-
-# Single resource detail
-tilt get uiresource/<name> -o json
-
-# Wait for ready
+tilt get uiresource/<name> -o json     # Single resource
 tilt wait --for=condition=Ready uiresource/<name> --timeout=120s
 ```
 
-**Status values:**
-- RuntimeStatus: `ok`, `error`, `pending`, `none`, `not_applicable`
-- UpdateStatus: `ok`, `error`, `pending`, `in_progress`, `none`, `not_applicable`
+**Status values:** RuntimeStatus: `ok|error|pending|none|not_applicable`. UpdateStatus: `ok|error|pending|in_progress|none|not_applicable`.
 
 ## Logs
 
@@ -49,29 +38,27 @@ tilt wait --for=condition=Ready uiresource/<name> --timeout=120s
 tilt logs <resource>
 tilt logs <resource> --since 5m
 tilt logs <resource> --tail 100
-tilt logs --json                    # JSON Lines output
+tilt logs --json                       # JSON Lines output
 ```
 
 ## Trigger and Lifecycle
 
 ```bash
-tilt trigger <resource>             # Force update
-tilt up                             # Start
-tilt down                           # Stop and clean up
+tilt trigger <resource>                # Force update
+tilt up                                # Start
+tilt down                              # Stop and clean up
 ```
 
 ## Running tilt up
 
-**tmux session rules** (mandatory — see `tmux` skill for full patterns):
-
-- **MUST** check `tmux has-session` before `tmux new-session` — never create duplicate sessions
-- **MUST** derive session name from git root — never hardcode
-- **MUST** add a window to an existing session — never create a parallel session
-- **MUST** use `send-keys` — never pass inline commands to `new-session`
+**tmux session rules** (mandatory):
+- MUST check `tmux has-session` before `tmux new-session` — no duplicates
+- MUST derive session name from git root — never hardcode
+- MUST add window to existing session — never parallel session
+- MUST use `send-keys` — never inline commands to `new-session`
 
 ```bash
 SESSION=$(basename $(git rev-parse --show-toplevel 2>/dev/null) || basename $PWD)
-
 if ! tmux has-session -t "$SESSION" 2>/dev/null; then
   tmux new-session -d -s "$SESSION" -n tilt
   tmux send-keys -t "$SESSION:tilt" 'tilt up' Enter
@@ -85,15 +72,12 @@ fi
 
 ## Critical: Never Restart for Code Changes
 
-Tilt live-reloads automatically. **Never suggest restarting `tilt up`** for:
-- Tiltfile edits
-- Source code changes
-- Kubernetes manifest updates
+Tilt live-reloads automatically. **Never restart `tilt up`** for Tiltfile edits, source code changes, or K8s manifest updates.
 
-Restart only for: Tilt version upgrades, port/host changes, crashes, cluster context switches.
+Restart only for: version upgrades, port/host changes, crashes, cluster context switches.
 
 ## References
 
-- [TILTFILE_API.md](TILTFILE_API.md) - Tiltfile authoring
-- [CLI_REFERENCE.md](CLI_REFERENCE.md) - Complete CLI with JSON patterns
+- [TILTFILE_API.md](TILTFILE_API.md) — Tiltfile authoring
+- [CLI_REFERENCE.md](CLI_REFERENCE.md) — Complete CLI with JSON patterns
 - https://docs.tilt.dev/

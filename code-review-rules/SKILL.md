@@ -5,232 +5,125 @@ description: Review categories, output format, and save instructions for code re
 
 ## Review Categories
 
-For each issue found, reference the **file path** and line number(s).
-Never shorten or truncate paths to just the filename — always include the
-complete directory structure (e.g. `../services/accounts/infra/grafana.ts`
-or `services/accounts/infra/grafana.ts`, not `grafana.ts`).
+For each issue: reference **file path** + line number(s). Never shorten to just filename — always full directory structure.
 
 ### Critical Issues
-- Bugs or logic errors
+- Bugs, logic errors
 - Security vulnerabilities
 - Data loss risks
-- User input and validation issues:
-  - Missing or insufficient input validation / sanitization
-  - SQL injection, XSS, command injection, path traversal vectors
-  - Unsanitized data reaching templates, queries, shell commands,
-    or file-system operations
-  - Missing length / type / range checks on user-supplied values
+- Input validation issues:
+  - Missing/insufficient validation/sanitization
+  - SQL injection, XSS, command injection, path traversal
+  - Unsanitized data reaching templates, queries, shell, filesystem
+  - Missing length/type/range checks on user input
   - Trusting client-side validation without server-side enforcement
-- Deployment and infrastructure misconfigurations (when applicable):
-  - Dockerfile issues (missing multi-stage builds, running as root, unset
-    `USER`, unversioned base images, missing health checks, large image
-    sizes, copying secrets or unnecessary files)
-  - Docker Compose issues (missing resource limits, restart policies,
-    network segregation, exposed debug ports)
-  - Kubernetes / Helm misconfigurations (missing liveness/readiness
-    probes, no resource requests/limits, privilege escalation, host
-    networking, missing network policies)
-  - CI/CD pipeline issues (pinned vs. unpinned action versions, leaked
-    secrets, missing environment protections)
-  - Environment and secrets management (hard-coded credentials, missing
-    `.env` in `.gitignore`, secrets committed to the repo)
-  - Terraform / IaC issues (hard-coded values, missing state locking,
-    overly permissive IAM policies, security groups, or network ACLs
-    — e.g. using 10.0.0.0/8 when only the VPC CIDR is needed)
-  - Cross-stack or cross-module resource dependencies without explicit
-    ordering (e.g. referencing a Lambda ARN from another stack without
-    `dependsOn` or a documented deployment order)
-  - Credentials or secrets transmitted over plaintext HTTP (code that
-    conditionally falls back to HTTP when HTTPS should be enforced)
-- Production readiness (when applicable):
-  - Default or well-known credentials left in environment variables,
-    docker-compose files, Helm values, or config files (PostgreSQL `POSTGRES_PASSWORD` set to "postgres",
-    RabbitMQ guest/guest, Redis with no password, etc.)
-  - Debug or development modes enabled (e.g. `GF_LOG_LEVEL=debug`,
-    `FLASK_DEBUG=1`, `NODE_ENV=development`, verbose logging that
-    may leak sensitive data)
-  - Admin UIs or dashboards exposed without authentication or with
-    default credentials (Grafana, pgAdmin, Kibana, etc.)
-  - Services bound to `0.0.0.0` or exposed on public ports without
-    access controls
-  - Missing or permissive CORS, CSP, or other security headers
-  - Sample data, seed scripts, or test fixtures included in
-    production deployments
+- Deployment/infra misconfigs:
+  - Dockerfile: missing multi-stage builds, running as root, unversioned base images, missing health checks, large images, copying secrets
+  - Docker Compose: missing resource limits, restart policies, network segregation, exposed debug ports
+  - K8s/Helm: missing probes, no resource requests/limits, privilege escalation, host networking, missing network policies
+  - CI/CD: pinned vs unpinned action versions, leaked secrets, missing env protections
+  - Secrets: hard-coded credentials, missing `.env` in `.gitignore`, secrets in repo
+  - Terraform/IaC: hard-coded values, missing state locking, overly permissive IAM/security groups/ACLs
+  - Cross-stack resource dependencies without explicit ordering or documented deploy order
+  - Credentials over plaintext HTTP when HTTPS should be enforced
+- Production readiness:
+  - Default/well-known credentials in env vars, compose files, Helm values, configs
+  - Debug/dev modes enabled (e.g. `GF_LOG_LEVEL=debug`, `FLASK_DEBUG=1`, `NODE_ENV=development`)
+  - Admin UIs exposed without auth or with default credentials
+  - Services on `0.0.0.0` or public ports without access controls
+  - Missing/permissive CORS, CSP, security headers
+  - Sample data/test fixtures in production deployments
 
 ### Warnings
 - Performance concerns
 - Error handling gaps
-- Silent failure paths (dead-letter queues, error queues, or retry
-  mechanisms with no monitoring or alerting — failures accumulate
-  undetected)
-- Misleading variable or config names that imply a specific format
-  but contain a different one (e.g. `SECRET_ARN` holding a name,
-  `ENDPOINT_URL` holding an IP) — causes functional bugs in
-  downstream consumers, not just readability issues
-- Implicit runtime dependencies — code that imports a module
-  without declaring it in the package manifest, relying on the
-  execution environment to provide it (e.g. AWS SDK in Lambda
-  runtime, system packages in a Docker base image). A runtime
-  update can silently break the dependency.
-- Unencrypted at-rest storage for potentially sensitive data —
-  queues, buckets, or other storage receiving application data
-  (log events, request payloads, error details) without encryption
-  at rest configured
-- Phantom lockfile or manifest entries — lockfile importers,
-  workspace entries, or monorepo configs referencing packages or
-  directories that do not exist in the codebase. Indicates
-  incomplete PRs, orphaned scaffolding, or build configs that
-  will break in CI.
-- Race conditions or concurrency issues
-- Unnecessary cloud/infrastructure costs (when applicable):
-  - Duplicate or redundant resources that could be consolidated
-    (e.g. multiple Secrets Manager secrets for the same scope,
-    separate S3 buckets that could be merged with prefixes)
-  - Over-provisioned resources (instance sizes, storage, IOPS,
-    throughput far above actual usage)
-  - Resources left running with no consumer (orphaned load
-    balancers, idle NAT gateways, unused Elastic IPs)
-  - Missing lifecycle policies or expiration (S3 objects, log
-    retention, old snapshots accumulating cost)
-  - Paid features enabled unnecessarily (multi-AZ on dev/staging
-    databases, provisioned concurrency on rarely-invoked Lambdas)
-  - Services that have cheaper equivalent alternatives for the
-    use case at hand
+- Silent failure paths (DLQ, error queues, retry with no monitoring — failures accumulate undetected)
+- Misleading variable/config names implying wrong format (e.g. `SECRET_ARN` holding name, `ENDPOINT_URL` holding IP)
+- Implicit runtime dependencies — imports without package manifest declaration, relying on runtime to provide
+- Unencrypted at-rest storage for sensitive data
+- Phantom lockfile/manifest entries referencing nonexistent packages/directories
+- Race conditions, concurrency issues
+- Unnecessary cloud costs:
+  - Duplicate/redundant resources that could consolidate
+  - Over-provisioned resources
+  - Orphaned resources with no consumer
+  - Missing lifecycle policies/expiration
+  - Paid features unnecessary (multi-AZ on dev DBs, provisioned concurrency on rare Lambdas)
+  - Cheaper equivalent alternatives available
 
 ### Suggestions
-- Code style and readability improvements
+- Code style, readability improvements
 - Naming improvements
-- Opportunities to reduce duplication
-- Missing, inadequate, or stale comments on complex logic (comments
-  that describe behavior no longer matching the code are worse than
-  no comments)
-- Hardcoded infrastructure values (IPs, CIDRs, ports, domain names,
-  ARNs) that should be centralized as named constants, especially
-  when a shared constant already exists in the codebase
-- Same logical config value expressed in different units without
-  derivation (e.g. retention as `1209600` seconds in one place and
-  `14` days in another) — define once and compute the other to
-  prevent drift
-- Dead or unused exports — exported symbols, constants, or functions
-  with no consumers in the codebase, especially in shared modules
-  where the public API surface should be kept minimal
+- Duplication reduction opportunities
+- Missing/inadequate/stale comments on complex logic
+- Hardcoded infra values that should be named constants (especially when shared constant exists)
+- Same logical value in different units without derivation (e.g. `1209600` seconds vs `14` days)
+- Dead/unused exports in shared modules
 
 ## Output Format
 
-**Line length limit:** Every line of output MUST be at most 240 characters.
-Wrap or abbreviate as needed to stay within this limit.
+**Line length limit:** max 240 chars per line. Wrap/abbreviate as needed.
 
 ### AI Disclosure Header
 
-The review MUST begin with a clear notice that it was generated by AI:
+Review MUST begin with:
 
 ```
 > **This review was generated by AI. Dave prolly read through it an cleaned it up but don't count on it.**
 > Use your own judgment — findings may contain false positives or miss real issues.
 ```
 
-Always include this header at the very top of the review content, before
-the architecture diagram or issue list.
+Always at top, before diagram or issue list.
 
 ### ASCII Architecture Diagram
 
-Before the issue list, output an ASCII-art **architecture / flow diagram**
-of the components touched or introduced by the changes. This is NOT a file
-stats table — it is a visual map showing how components, services, modules,
-or layers relate to each other with boxes, arrows, and grouping borders.
+Before issue list: ASCII-art architecture/flow diagram of components touched/introduced. NOT file stats — visual map of component/service/module/layer relationships.
 
-Rules for the diagram:
+Rules:
+- Box-drawing chars (`┌ ┐ └ ┘ │ ─ ┬ ┴ ├ ┤ ┼`) for borders
+- Arrows (`───>`, `- - ->`, `<───`, `│` with `▼`/`▲`) for flow
+- Group related components in labeled boxes
+- Label every box with component name + short note
+- Dashed borders (`╌╌╌` or `- - -`) for optional/external/planned
+- Max 240 columns wide
 
-- Use box-drawing characters (`┌ ┐ └ ┘ │ ─ ┬ ┴ ├ ┤ ┼`) for borders.
-- Use arrows (`───>`, `- - ->`, `<───`, `│` with `▼`/`▲`) for data or
-  control flow between components.
-- Group related components inside larger labeled boxes (subgraphs).
-- Label every box with the component/service/file name and a short note.
-- Use dashed borders (`╌╌╌` or `- - -`) for optional / external / planned
-  components.
-- Keep the diagram within 240 columns and as tall as it needs to be.
-
-Example (infrastructure-style):
-
-```
-┌─────────────────────────── VPC ──────────────────────────────────────────────────────────────────────┐
-│                                                                                                      │
-│   ┌──── Public Subnets ────────────────────────────┐    ┌──── Private Subnets ────────────────────┐  │
-│   │                                                │    │                                         │  │
-│   │  ┌──────────────────────┐                      │    │  ┌──────────────────────────────────┐   │  │
-│   │  │  ALB (app-alb)       │──────────────────────┼───>│  │  ECS Service (app-service)       │   │  │
-│   │  │  :80 -> 301 HTTPS    │                      │    │  │  Fargate Spot · 2-10 tasks       │   │  │
-│   │  │  :443 -> TG:3000     │                      │    │  └────────────┬─────────────────────┘   │  │
-│   │  └──────────────────────┘                      │    │               │                         │  │
-│   └────────────────────────────────────────────────┘    │               ▼                         │  │
-│                                                         │  ┌──────────────────────────────────┐   │  │
-│                                                         │  │  RDS PostgreSQL (app-db)         │   │  │
-│                                                         │  │  db.t4g.micro · 20GB gp3         │   │  │
-│                                                         │  └──────────────────────────────────┘   │  │
-│                                                         └─────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────┘
-         ▲                                       - - - -> Secrets Manager
-         │                                       - - - -> CloudWatch Logs
-    Route53 DNS
-    (app.example.com)
-```
-
-For application-level changes (no infra), draw the relevant modules,
-classes, or request flow instead (e.g. `Controller ──> Service ──> Repo`).
-
-If the changes are trivial (1-2 small files, no architectural impact),
-skip the diagram entirely.
+For app-level changes (no infra): draw relevant modules/classes/request flow.
+Trivial changes (1-2 small files, no architectural impact): skip diagram.
 
 ### Issue List
 
-Output each issue in grep-style format, one per line. Never abbreviate
-to just the filename.
+Grep-style format, one per line. Never abbreviate to just filename.
 
 ```
-src/services/auth/handlers/login.ts:42: [critical] description of issue
+src/services/auth/handlers/login.ts:42: [critical] description
 
-src/services/auth/middleware/jwt.ts:87: [warning] description of issue
+src/services/auth/middleware/jwt.ts:87: [warning] description
 
-../shared/lib/utils/hash.ts:120: [suggestion] description of issue
+../shared/lib/utils/hash.ts:120: [suggestion] description
 ```
 
-Use the severity tags: `[critical]`, `[warning]`, `[suggestion]`.
+Tags: `[critical]`, `[warning]`, `[suggestion]`. Separate each with blank line.
 
-**Separate each issue with a blank line** for readability.
+Line would exceed 240 chars? Wrap onto continuation line indented 4 spaces.
 
-If the description would push the line past 240 characters, wrap it onto a
-continuation line indented with 4 spaces.
-
-If there are no issues, output "No issues found."
+No issues? Output "No issues found."
 
 ### Positive Observations
 
-After the issue list, add a separate **"Positive Observations"** section.
-List well-written code, good patterns, or practices worth noting as plain
-bullet points. If there is nothing notable, omit this section entirely.
-
-```
-## Positive Observations
-
-- Clean separation of concerns in the new service layer
-- Good use of TypeScript discriminated unions for error handling
-```
+After issues, separate section. List well-written code, good patterns as plain bullets. Nothing notable? Omit section.
 
 ### Overall Assessment
 
-At the end, provide a short overall assessment (1-2 sentences).
+Short overall assessment (1-2 sentences) at end.
 
 ## Save to File
 
-Use the `save-code-review` tool to save the review. Pass the entire review
-as the `content` argument. **Do NOT print the review in the chat.** Only
-tell the user the file path returned by the tool and a one-line summary
-(e.g. "2 critical, 3 warnings, 1 suggestion" or "No issues found").
+Use `save-code-review` tool. Pass entire review as `content`. Do NOT print review in chat — only tell user file path + one-line summary (e.g. "2 critical, 3 warnings, 1 suggestion").
 
 ## Important
 
-- Do NOT modify any source code files.
-- Do NOT suggest fixes inline by editing — only describe the issues.
-- Do NOT output the full review in the conversation — save it to the file only.
-- The ONLY file you may create is the review output under `.ai-artifacts/`.
-- Do NOT automatically fix or address any review findings. The review is for the user to read and decide what to act on. After saving the review, STOP. Do not proceed to implement fixes unless the user explicitly asks you to.
+- Do NOT modify source code files.
+- Do NOT suggest fixes inline by editing — only describe issues.
+- Do NOT output full review in conversation — save to file only.
+- Only file you may create: review output under `.ai-artifacts/`.
+- Do NOT auto-fix findings. Review is for user to read and decide. After saving, STOP.

@@ -17,86 +17,75 @@ description: Conventional Commits format and rules for writing git commit messag
 
 ## Types
 
-| Type       | When to use                                      |
-|------------|--------------------------------------------------|
-| `feat`     | New feature                                      |
-| `fix`      | Bug fix                                          |
-| `docs`     | Documentation only                               |
-| `style`    | Formatting, semicolons, etc. (no logic change)   |
-| `refactor` | Code change that neither fixes nor adds features |
-| `perf`     | Performance improvement                          |
-| `test`     | Adding or correcting tests                       |
-| `build`    | Build system or external dependencies            |
-| `ci`       | CI configuration                                 |
-| `chore`    | Maintenance tasks                                |
-| `revert`   | Reverting a previous commit                      |
+| Type | When |
+|------|------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `style` | Formatting, no logic change |
+| `refactor` | Neither fix nor feature |
+| `perf` | Performance improvement |
+| `test` | Adding/correcting tests |
+| `build` | Build system/external deps |
+| `ci` | CI configuration |
+| `chore` | Maintenance |
+| `revert` | Reverting previous commit |
 
 ## Line Length Limits
 
-- **Subject line**: max 72 characters
-- **Body and footer lines**: max 100 characters each
+- **Subject**: max 72 chars
+- **Body/footer**: max 100 chars each
 
-These limits are enforced by commitlint. Break long lines to stay within 100 characters.
+Enforced by commitlint. Break long lines to stay within 100.
 
 ## Subject Line Rules
 
-- Imperative mood: "add" not "added", "fix" not "fixed"
+- Imperative mood: "add" not "added"
 - Lowercase first letter
-- No period at the end
+- No trailing period
 
 ## Scope
 
-- If all changes belong to a single service/package/module, use its name: `feat(auth): ...`
-- If changes span multiple services, omit the scope: `feat: ...`
+- Single service/package/module? Use its name: `feat(auth): ...`
+- Multiple services? Omit: `feat: ...`
 
 ## Body
 
-- Separated from subject by a blank line
-- Bullet list summarizing key changes
-- Each bullet explains *what* changed and *why* when not obvious
+- Blank line after subject
+- Bullet list (`-` not `*`) summarizing key changes
+- Each bullet: *what* changed + *why* when not obvious
 
 ## Breaking Changes
 
-When a commit introduces breaking changes:
-
-1. Append `!` after the type/scope: `feat(auth)!: ...`
-2. Add a `BREAKING CHANGE:` footer explaining what breaks and how to migrate
+1. Append `!` after type/scope: `feat(auth)!: ...`
+2. Add `BREAKING CHANGE:` footer explaining what breaks + migration
 
 ## Examples
-
-### Standard
 
 ```
 feat(auth): add JWT refresh token support
 
-- add /auth/refresh endpoint that issues new access tokens
-- store refresh token hashes in the sessions table
-- expire refresh tokens after 30 days of inactivity
+- add /auth/refresh endpoint for new access tokens
+- store refresh token hashes in sessions table
+- expire refresh tokens after 30 days inactive
 ```
-
-### Breaking change
 
 ```
 feat(auth)!: replace session tokens with JWT
 
 - remove cookie-based session handling
 - add JWT access and refresh token flow
-- migrate /auth/login to return token pair instead of setting cookies
+- migrate /auth/login to return token pair
 
-BREAKING CHANGE: /auth/login no longer sets session cookies. Clients
-must store the returned access and refresh tokens and pass them via
-the Authorization header.
+BREAKING CHANGE: /auth/login no longer sets session cookies.
+Clients must store returned tokens and pass via Authorization header.
 ```
-
-### Minimal (small change)
 
 ```
 fix(api): handle null response from upstream service
 
-- return 502 instead of crashing when upstream returns null body
+- return 502 instead of crashing on null upstream body
 ```
-
-### Revert
 
 ```
 revert: let us never again speak of the noodle incident
@@ -106,10 +95,10 @@ Refs: 676104e, a215868
 
 ## Git Rules
 
-- Only commit what is already staged — never stage additional files
-- Never use `--amend` or destructive git operations unless explicitly asked
-- Never push to remote unless explicitly asked
-- Use `git commit -m "<subject>" -m "<body>"` for multiline messages
+- Only commit what already staged — never stage additional files
+- Never `--amend` or destructive ops unless explicitly asked
+- Never push unless explicitly asked
+- Use `git commit -m "<subject>" -m "<body>"` for multiline
 
 ## Reference
 
