@@ -56,7 +56,8 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 - Naming improvements
 - Duplication reduction opportunities
 - Missing/inadequate/stale comments on complex logic
-- Hardcoded infra values that should be named constants (especially when shared constant exists)
+- Repeated magic values that should be extracted to named constants or derived from one source
+- Hardcoded infra values that should be named constants
 - Same logical value in different units without derivation (e.g. `1209600` seconds vs `14` days)
 - Dead/unused exports in shared modules
 
