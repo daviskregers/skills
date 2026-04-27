@@ -1,42 +1,41 @@
 ---
 name: tdd
 description: >
-  Test-driven development rules: red-green-refactor cycle, test rollback protocol,
-  test quality guidelines. Use when writing tests, fixing bugs with TDD, or any
-  workflow that involves writing tests before or alongside implementation.
+  TDD rules: red-green-refactor, test rollback protocol, test quality.
+  Use when writing tests, fixing bugs, or test-alongside-implementation workflows.
 ---
 
-Test-driven development rules. Apply to all test-writing workflows.
+TDD rules. Apply to all test-writing workflows.
 
-## Red-Green-Refactor Cycle
+## Red-Green-Refactor
 
-1. **Red** — write a test that FAILS. Run it. Confirm failure.
-2. **Green** — write minimal implementation to make test pass. Run it. Confirm pass.
-3. **Refactor** — clean up if needed. Run tests. Confirm still pass.
+1. **Red** — write test that FAILS. Run. Confirm failure.
+2. **Green** — minimal impl to pass. Run. Confirm pass.
+3. **Refactor** — clean up. Run. Confirm still pass.
 
-The test MUST fail before the fix and pass after. Both states must be demonstrated. If you can't show the fail→pass transition, the test is not validating anything.
+Test MUST fail before fix, pass after. Both states demonstrated. No fail→pass transition = test validates nothing.
 
-## Test Rollback Protocol
+## Rollback Protocol
 
-If the test needs to change during implementation (wrong assertion, wrong setup, misunderstood behavior):
+Test needs change during impl (wrong assertion/setup/misunderstood behavior):
 
-1. **Revert implementation** — undo all source changes, return to pre-fix state.
-2. **Fix the test** — update so it correctly captures expected behavior.
-3. **Run updated test** — confirm it FAILS against unfixed code. Critical step. If it passes without the fix, test proves nothing.
-4. **Re-implement** — apply the fix again.
-5. **Run test** — confirm it passes now.
+1. **Revert impl** — undo all source changes, pre-fix state.
+2. **Fix test** — correct expected behavior.
+3. **Run test** — MUST FAIL against unfixed code. Critical. Passes without fix = test proves nothing.
+4. **Re-implement** — apply fix again.
+5. **Run test** — confirm passes.
 
-Never skip the "verify test fails without fix" step. That's the whole point.
+Never skip "verify fail without fix" step.
 
-## Test Quality Rules
+## Test Quality
 
-- **One assertion per test** — each test tests ONE thing with a clear name describing the expectation.
-- **Deterministic** — no timing-dependent, no random values, no network calls without mocks.
-- **Match project patterns** — use existing test framework, file structure, naming conventions in the project.
-- **Happy path + edge cases** — cover: normal input, empty/null/zero, boundaries, error conditions, all branches.
-- **Minimal setup** — test only what's needed. Don't over-mock, don't under-mock.
-- **Test behavior, not implementation** — test what the code does, not how it does it. Internal refactors shouldn't break tests.
+- One assertion per test. Clear name = expected behavior.
+- Deterministic. No timing/random/network without mocks.
+- Match project test framework, file structure, naming.
+- Cover: happy path, empty/null/zero, boundaries, errors, all branches.
+- Minimal setup. Don't over/under-mock.
+- Test behavior not implementation. Refactors shouldn't break tests.
 
-## Regression Check
+## Regression
 
-After any fix or change, run the FULL test suite for the affected area — not just the new test. No regressions allowed.
+After any fix/change: run FULL test suite for affected area. No regressions.
