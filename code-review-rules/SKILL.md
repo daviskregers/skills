@@ -10,7 +10,17 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 ### Critical Issues
 - Bugs, logic errors
 - Security vulnerabilities
+- Auth token/session derivation — refresh, clone, or impersonate inheriting elevated claims (e.g. admin flags, impersonation state, scoped permissions) that should not carry over
+- Fail-open security checks — security-sensitive code defaulting to permissive on error/exception (e.g. `catch → return false` in auth/permission checks); fallback branches granting elevated privileges
+- Inconsistent security policy across parallel code paths — same protection (throttling, logging, validation) applied in one flow but skipped in another
+- Sensitive data in logs — stack traces with args (`getTrace()`), credentials, tokens, PII reaching log aggregators/Sentry
 - Data loss risks
+- ORM/framework pitfalls:
+  - Soft-delete scope leaks — querying without `withTrashed()` when deleted records matter
+  - Eager loading gaps — missing relation loads causing N+1 or null on soft-deleted/missing related models
+  - Relationship assumptions that crash under edge cases (null parent, deleted related record)
+  - State leakage between operations (stale claims in refreshed tokens, cached values surviving across requests)
+  - Model serialization leaking credentials — credential-equivalent fields not in `$hidden`/`$guarded`, exposed via `toArray()`/JSON
 - Input validation issues:
   - Missing/insufficient validation/sanitization
   - SQL injection, XSS, command injection, path traversal
@@ -36,13 +46,18 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 
 ### Warnings
 - Performance concerns
+- Query patterns defeating indexes — function-wrapped columns (`UPPER()`, `LOWER()`), type coercion, expressions preventing index usage
 - Error handling gaps
+- Broad/untyped exception catching — `catch (\Exception)` or bare `catch` swallowing errors that should propagate or be handled specifically
 - Silent failure paths (DLQ, error queues, retry with no monitoring — failures accumulate undetected)
+- Inconsistent API response shapes — mixed `abort()` / framework error helpers / raw responses across same API surface
 - Misleading variable/config names implying wrong format (e.g. `SECRET_ARN` holding name, `ENDPOINT_URL` holding IP)
 - Implicit runtime dependencies — imports without package manifest declaration, relying on runtime to provide
 - Unencrypted at-rest storage for sensitive data
 - Phantom lockfile/manifest entries referencing nonexistent packages/directories
 - Race conditions, concurrency issues
+- Untested security-critical paths — auth boundaries, permission gates, throttling where polarity inversion would ship green
+- Weak/misleading test assertions — test claims to verify behavior but assertions don't actually check it (false confidence)
 - Unnecessary cloud costs:
   - Duplicate/redundant resources that could consolidate
   - Over-provisioned resources
@@ -55,6 +70,8 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 - Code style, readability improvements
 - Naming improvements
 - Duplication reduction opportunities
+- Separation of concerns — business logic in controllers, data access in services, code belonging in wrong architectural layer
+- Test data hygiene — factories creating orphaned/unused records, unnecessary DB writes in test setup
 - Missing/inadequate/stale comments on complex logic
 - Repeated magic values that should be extracted to named constants or derived from one source
 - Hardcoded infra values that should be named constants
