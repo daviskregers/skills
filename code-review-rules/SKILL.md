@@ -68,6 +68,7 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 
 ### Suggestions
 - Code style, readability improvements
+- Stepdown rule — functions ordered top-down by abstraction level: public/high-level first, private/helper below; each function followed by those it calls, reading like a narrative
 - Naming improvements
 - Duplication reduction opportunities
 - Separation of concerns — business logic in controllers, data access in services, code belonging in wrong architectural layer
