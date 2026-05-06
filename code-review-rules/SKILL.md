@@ -47,6 +47,9 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 ### Warnings
 - Performance concerns
 - Query patterns defeating indexes — function-wrapped columns (`UPPER()`, `LOWER()`), type coercion, expressions preventing index usage
+- Redundant data fetching — re-querying data already loaded/cached when existing result still valid; bypassing cache without justification
+- Query consolidation misses — multiple queries hitting same table/row when single query with multiple columns would suffice
+- Algorithmic inefficiency — iterating full collection when early termination possible (e.g., uniqueness check scanning all N items when first duplicate suffices)
 - Error handling gaps
 - Broad/untyped exception catching — `catch (\Exception)` or bare `catch` swallowing errors that should propagate or be handled specifically
 - Silent failure paths (DLQ, error queues, retry with no monitoring — failures accumulate undetected)
@@ -74,6 +77,7 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 - Separation of concerns — business logic in controllers, data access in services, code belonging in wrong architectural layer
 - Test data hygiene — factories creating orphaned/unused records, unnecessary DB writes in test setup
 - Missing/inadequate/stale comments on complex logic
+- Unnecessary intermediate allocations — building temporary collections only to reduce to scalar (count, sum, max) when accumulator loop avoids allocation
 - Repeated magic values that should be extracted to named constants or derived from one source
 - Hardcoded infra values that should be named constants
 - Same logical value in different units without derivation (e.g. `1209600` seconds vs `14` days)
