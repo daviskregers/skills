@@ -83,11 +83,22 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 - Same logical value in different units without derivation (e.g. `1209600` seconds vs `14` days)
 - Dead/unused exports in shared modules
 
+## Confidence Threshold
+
+Only report findings you'd bet on. Before including any finding:
+
+- **Show evidence** — the code snippet must demonstrate the problem. No "this might fail if..." speculation.
+- **Trust framework guarantees** — if the framework handles it (validation, CSRF, escaping), don't flag it unless the code explicitly bypasses the protection.
+- **Trust internal code** — don't flag missing null checks on return values from internal functions that never return null.
+- **Skip hypotheticals** — "if someone later changes X, this breaks" is not a finding. Review what's here now.
+- **Uncertain?** Use `❓ q:` to ask, don't flag as an issue. Questions are cheap; false positives waste time.
+- **Style disagreements aren't findings** — unless it measurably hurts readability or causes bugs, skip it.
+
 ## Output Format
 
 **Line length limit:** max 240 chars per line. Wrap/abbreviate as needed.
 
-### AI Disclosure Header
+### 1. AI Disclosure Header
 
 Review MUST begin with:
 
@@ -96,46 +107,90 @@ Review MUST begin with:
 > Use your own judgment — findings may contain false positives or miss real issues.
 ```
 
-Always at top, before diagram or issue list.
+Always at top, before anything else.
 
-### ASCII Architecture Diagram
+### 2. Changeset Summary
 
-Before issue list: ASCII-art architecture/flow diagram of components touched/introduced. NOT file stats — visual map of component/service/module/layer relationships.
+2-3 sentences: what this changeset does, why, and highest-risk area. Reader should understand the intent without reading any code.
 
-Rules:
+After summary, if any non-obvious behavioral changes exist, list them:
+
+```
+**Behavior changes:**
+- Token refresh: was instant expiry → now 5-min grace window
+- Login: added rate limiting (5 attempts/min)
+```
+
+Omit if all behavioral changes are obvious from the diff.
+
+### 3. Change Flow Diagram
+
+Single unified diagram showing how control/data flow changes. NOT a static component map — show the delta narrative.
+
+**Change markers in diagram:**
+- `[+ component]` — newly added
+- `[- component]` — removed
+- `[~ component]` — modified
+- Unmarked — unchanged context (include enough to show where changes fit)
+
+**Changes legend** below diagram — one line per marker explaining what changed and why:
+```
+  + ComponentName — what it does / why added
+  ~ ComponentName — how it changed
+  - ComponentName — why removed
+```
+
+**Rules:**
 - Box-drawing chars (`┌ ┐ └ ┘ │ ─ ┬ ┴ ├ ┤ ┼`) for borders
 - Arrows (`───>`, `- - ->`, `<───`, `│` with `▼`/`▲`) for flow
-- Group related components in labeled boxes
-- Label every box with component name + short note
 - Dashed borders (`╌╌╌` or `- - -`) for optional/external/planned
 - Max 240 columns wide
+- Show the flow path through the system, not an inventory of boxes
 
-For app-level changes (no infra): draw relevant modules/classes/request flow.
-Trivial changes (1-2 small files, no architectural impact): skip diagram.
+**Example — cache layer added to auth flow:**
+```
+req ───> [~ AuthMiddleware] ───> [+ RedisCache] ─ hit ──> handler
+                                       │
+                                    miss
+                                       ▼
+                                   UserRepo ───> DB
 
-### Issue List
+Changes:
+  ~ AuthMiddleware — added cache check before DB lookup
+  + RedisCache — token lookup with 5m TTL, falls through to DB on miss
+```
 
-Grep-style format, one per line. Never abbreviate to just filename.
+Trivial changes (1-2 small files, no flow impact): skip diagram.
+
+### 4. Findings (Grouped by Concern)
+
+Group findings by logical area/concern, not by severity. Each group:
 
 ```
-src/services/auth/handlers/login.ts:42: [critical] description
+### <Concern Name>
 
-src/services/auth/middleware/jwt.ts:87: [warning] description
+**Affects:** <blast radius — what else depends on this area>
 
-../shared/lib/utils/hash.ts:120: [suggestion] description
+<file>:<line>: [<severity>] <description>
+
+    ```<lang>
+    // 2-3 lines of relevant code context
+    ```
 ```
 
-Tags: `[critical]`, `[warning]`, `[suggestion]`. Separate each with blank line.
+**Severity tags:** `[critical]`, `[warning]`, `[suggestion]`
 
-Line would exceed 240 chars? Wrap onto continuation line indented 4 spaces.
+**Code snippets are mandatory** — include 2-3 lines around the issue. Reader must understand the finding without opening the file. This also makes findings resilient to line number offsets from earlier fixes.
+
+**Blast radius** per group: brief note on what's downstream of this area. "Affects: login, session refresh, all authenticated API endpoints." Omit if scope is self-contained.
 
 No issues? Output "No issues found."
 
-### Positive Observations
+### 5. Positive Observations
 
-After issues, separate section. List well-written code, good patterns as plain bullets. Nothing notable? Omit section.
+After findings, separate section. List well-written code, good patterns as plain bullets. Nothing notable? Omit section.
 
-### Overall Assessment
+### 6. Overall Assessment
 
 Short overall assessment (1-2 sentences) at end.
 
