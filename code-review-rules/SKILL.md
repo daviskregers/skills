@@ -100,76 +100,96 @@ Use markdown heading hierarchy for Neovim folding. **Line length limit:** max 16
 
 ### Findings (`## Findings`)
 
-Group by logical area/concern, not severity. Each concern = `### <Concern Name>` subheading. Each finding = `####` subheading.
+Order by severity: `### Critical` → `### Warnings` → `### Suggestions`. Reader handles must-haves first, can drop off mid-review without missing important items.
+
+Each finding follows **step-down rule** — most important info first, details below:
 
 ```markdown
 ## Findings
 
-### <Concern Name>
+### Critical
 
-**Affects:** <blast radius — what else depends on this area>
-
-#### `<file>:<line>` [<severity>] <short description>
-
-<explanation>
+#### 🔴 `<file>:<line>` — <one-line description>
 
     ```<lang>
-    // 2-3 lines of relevant code context
+    // 2-3 lines of relevant code
     ```
 
-#### `<file>:<line>` [<severity>] <short description>
-...
+Brief explanation (2-3 sentences max). What's wrong, why it matters.
+
+**Affects:** <blast radius, only if non-obvious>
+
+### Warnings
+
+#### 🟡 `<file>:<line>` — <one-line description>
+
+    ```<lang>
+    // 2-3 lines
+    ```
+
+Brief explanation.
+
+### Suggestions
+
+#### 🔵 `<file>:<line>` — <one-line description>
+
+    ```<lang>
+    // 2-3 lines
+    ```
+
+Brief explanation.
 ```
 
-**Severity tags:** `[critical]`, `[warning]`, `[suggestion]`
+**Rules:**
+- Severity emoji + location + one-liner in heading — scannable without opening fold
+- Code snippet immediately after heading — see the problem before reading about it
+- Explanation: 2-3 sentences max. No throat-clearing.
+- **Affects** only when blast radius non-obvious. Omit for self-contained changes.
+- Empty severity section? Omit entirely.
+- No issues at all? Output "No issues found."
 
-**Code snippets mandatory** — 2-3 lines around issue. Reader must understand finding without opening file. Also resilient to line offsets from earlier fixes.
+### Optimizations (`### Optimizations`)
 
-**"Under the hood" callouts** — when a finding touches something with non-obvious internals, add a blockquote after the code snippet explaining *why* it matters at the internals level. The finding provides context; the callout teaches the deeper mechanism.
+Separate section after suggestions for things that **work but could be better** — taught through internals. Not bugs, not style nits — CS-level improvements with educational "under the hood" explanations.
 
 ```markdown
-#### `src/auth/handlers.ts:42` [warning] Linear scan on every request
+### Optimizations
 
-Checks all AUTH_PLACEHOLDERS via `str_contains` on concatenated body.
+#### ⚡ `<file>:<line>` — <one-line description>
 
-    ```php
-    foreach (self::AUTH_PLACEHOLDERS as $placeholder) {
-        if (str_contains($combined, $placeholder)) {
+    ```<lang>
+    // current code
     ```
 
-> **Under the hood:** `str_contains` uses Boyer-Moore-Horspool in PHP's
-> C layer for longer strings, simple scan for short ones. With 5
-> placeholders and ~2KB bodies this is negligible — but if the list
-> or body size grew, a single regex with alternation would scan once
-> instead of 5 passes.
+> **Under the hood:** explanation of internals — why current
+> approach is suboptimal, what the runtime/language actually does,
+> and what alternative leverages the internals better.
 ```
 
 Include when:
-- **Complexity** — non-obvious time/space (e.g. `count()` O(1) due to stored size field, `array_merge` in loop = O(n²) from reallocation)
+- **Complexity** — non-obvious time/space (`count()` O(1) due to stored size, `array_merge` in loop = O(n²))
 - **Memory** — stack vs heap, GC pressure, value vs reference types, copy-on-write
-- **Data structures** — why this structure vs alternatives, internal representation (hash tables, B-trees, ring buffers)
-- **Algorithms** — sorting choices (quicksort vs mergesort stability, timsort for nearly-sorted), when brute force beats clever
-- **Design patterns** — when code uses one (or should), explain pattern + why it fits (decorator for wrapping, strategy for swappable algorithms, observer for decoupled events)
-- **Runtime/framework internals** — how it works one layer below API surface (event loop, connection pooling, query planning, JIT)
+- **Data structures** — why this structure vs alternatives, internal representation
+- **Algorithms** — sorting choices, search strategies, when brute force beats clever
+- **Design patterns** — pattern that fits here, why, and when it doesn't
+- **Runtime/framework internals** — one layer below API surface
 
-Skip when obvious. Only add when the callout genuinely teaches something about *why* the finding matters.
+Skip when obvious. Only include when genuinely educational.
 
-**Blast radius** per concern group: what's downstream. "Affects: login, session refresh, all authenticated API endpoints." Omit if self-contained.
-
-No issues? Output "No issues found."
+Also add "under the hood" callouts as blockquotes on individual critical/warning/suggestion findings when the internals explain *why* that specific finding matters.
 
 ### Self-Review Pass
 
-After generating all findings, re-read them and ask:
-- Did I miss any category (security, performance, error handling, architecture)?
-- Any finding that's actually framework-handled or internal-code-guaranteed? Remove it.
-- Any duplicate findings across concern groups? Deduplicate.
-- Any finding I'm not confident about? Downgrade to `❓ q:` or remove.
+After generating all findings, re-read and check:
+- Missing category (security, performance, error handling, architecture)?
+- Finding actually framework-handled or internal-code-guaranteed? Remove.
+- Duplicates? Deduplicate.
+- Not confident? Downgrade to `❓ q:` or remove.
 
 ### Positive Observations (`## Positive Observations`)
 
-After findings. List well-written code, good patterns as plain bullets. Nothing notable? Omit section.
+After findings. Well-written code, good patterns as plain bullets. Nothing notable? Omit.
 
 ### Overall Assessment (`## Assessment`)
 
-Short overall assessment (1-2 sentences) at end.
+1-2 sentences at end.
