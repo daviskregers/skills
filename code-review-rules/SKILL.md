@@ -96,7 +96,7 @@ Only report findings you'd bet on. Before including any finding:
 
 ## Output Format
 
-Use markdown heading hierarchy for Neovim folding. **Line length limit:** max 240 chars per line.
+Use markdown heading hierarchy for Neovim folding. **Line length limit:** max 160 chars per line.
 
 ### Findings (`## Findings`)
 
@@ -124,6 +124,35 @@ Group by logical area/concern, not severity. Each concern = `### <Concern Name>`
 **Severity tags:** `[critical]`, `[warning]`, `[suggestion]`
 
 **Code snippets mandatory** — 2-3 lines around issue. Reader must understand finding without opening file. Also resilient to line offsets from earlier fixes.
+
+**"Under the hood" callouts** — when a finding touches something with non-obvious internals, add a blockquote after the code snippet explaining *why* it matters at the internals level. The finding provides context; the callout teaches the deeper mechanism.
+
+```markdown
+#### `src/auth/handlers.ts:42` [warning] Linear scan on every request
+
+Checks all AUTH_PLACEHOLDERS via `str_contains` on concatenated body.
+
+    ```php
+    foreach (self::AUTH_PLACEHOLDERS as $placeholder) {
+        if (str_contains($combined, $placeholder)) {
+    ```
+
+> **Under the hood:** `str_contains` uses Boyer-Moore-Horspool in PHP's
+> C layer for longer strings, simple scan for short ones. With 5
+> placeholders and ~2KB bodies this is negligible — but if the list
+> or body size grew, a single regex with alternation would scan once
+> instead of 5 passes.
+```
+
+Include when:
+- **Complexity** — non-obvious time/space (e.g. `count()` O(1) due to stored size field, `array_merge` in loop = O(n²) from reallocation)
+- **Memory** — stack vs heap, GC pressure, value vs reference types, copy-on-write
+- **Data structures** — why this structure vs alternatives, internal representation (hash tables, B-trees, ring buffers)
+- **Algorithms** — sorting choices (quicksort vs mergesort stability, timsort for nearly-sorted), when brute force beats clever
+- **Design patterns** — when code uses one (or should), explain pattern + why it fits (decorator for wrapping, strategy for swappable algorithms, observer for decoupled events)
+- **Runtime/framework internals** — how it works one layer below API surface (event loop, connection pooling, query planning, JIT)
+
+Skip when obvious. Only add when the callout genuinely teaches something about *why* the finding matters.
 
 **Blast radius** per concern group: what's downstream. "Affects: login, session refresh, all authenticated API endpoints." Omit if self-contained.
 
