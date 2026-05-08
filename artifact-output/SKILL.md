@@ -1,15 +1,16 @@
 ---
 name: artifact-output
 description: >
-  Save generated artifacts (reviews, explanations, reports) to .ai-artifacts/.
+  Save generated artifacts (reviews, explanations, reports) to .dk-notes/<kind>/.
   Output file path + one-line summary in chat only — never dump content.
 ---
 
-Save artifacts to `.ai-artifacts/`. User reads in editor, not chat.
+Save artifacts to `.dk-notes/<kind>/`. User reads in editor, not chat. `.dk-notes/` is globally gitignored.
 
 ## Saving
 
-- Dir: `.ai-artifacts/` relative to project root. Create if needed.
+- Dir: `.dk-notes/<kind>/` relative to project root. Create if needed.
+- Kind → dir: `review`→`reviews`, `explanation`→`explanations`, `plan`→`plans`, `usage-report`→`ai`, other→`ai`.
 - Filename: `<type>_<YYYY-MM-DD>_<HH-MM-SS>[_<suffix>].<ext>`
 - Type: `review`, `explanation`, etc. Ext: `.md`, `.html`, etc.
 
