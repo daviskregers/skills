@@ -36,6 +36,19 @@ Never skip "verify fail without fix" step.
 - Minimal setup. Don't over/under-mock.
 - Test behavior not implementation. Refactors shouldn't break tests.
 
+## Contract Migration
+
+Existing behavior has tests but contract must change:
+
+1. **New tests first** — write tests matching new contract expectations. Run → confirm FAILS.
+2. **Implement** — change code to satisfy new contract. Run → new tests pass.
+3. **Audit old tests** — review broken old-contract tests one by one:
+   - Failure makes sense (contract changed)? Remove test or rewrite to mirror intent under new contract.
+   - Failure unexpected (unrelated breakage)? Fix — regression found.
+4. **Full suite green** — all tests pass, no old-contract tests left unreviewed.
+
+Key: old test removal only after verifying new contract tests cover same behavioral intent. Don't lose coverage silently.
+
 ## Regression
 
 After any fix/change: run FULL test suite for affected area. No regressions.
