@@ -61,6 +61,7 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 - Race conditions, concurrency issues
 - Untested security-critical paths — auth boundaries, permission gates, throttling where polarity inversion would ship green
 - Weak/misleading test assertions — test claims to verify behavior but assertions don't actually check it (false confidence)
+- Band-aid fixes — clamping, guarding, or suppressing symptoms without investigating root cause (e.g. clamping line numbers instead of fixing source of invalid lines, swallowing exceptions instead of understanding why they fire)
 - Unnecessary cloud costs:
   - Duplicate/redundant resources that could consolidate
   - Over-provisioned resources
@@ -74,7 +75,7 @@ For each issue: reference **file path** + line number(s). Never shorten to just 
 - Stepdown rule — functions ordered top-down by abstraction level: public/high-level first, private/helper below; each function followed by those it calls, reading like a narrative
 - Naming improvements
 - Duplication reduction opportunities
-- Separation of concerns — business logic in controllers, data access in services, code belonging in wrong architectural layer
+- Separation of concerns — three-layer boundary: controllers (comms+auth only), services (business logic, framework-agnostic), repositories (persistence abstraction). Flag: business logic in controllers/models, direct DB/filesystem in services, request handling in repositories
 - Test data hygiene — factories creating orphaned/unused records, unnecessary DB writes in test setup
 - Missing/inadequate/stale comments on complex logic
 - Unnecessary intermediate allocations — building temporary collections only to reduce to scalar (count, sum, max) when accumulator loop avoids allocation
