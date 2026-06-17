@@ -93,6 +93,12 @@ revert: let us never again speak of the noodle incident
 Refs: 676104e, a215868
 ```
 
+## Attribution
+
+Last line of every commit message: `🤖 Generated with AI`. Optionally append the model in parens, e.g. `🤖 Generated with AI (Claude Opus 4.8)`.
+
+No tool-branded attribution — no `Co-Authored-By` trailer, no "Generated with Claude Code"/"Generated with opencode".
+
 ## Git Rules
 
 - Only commit what already staged — never stage additional files
