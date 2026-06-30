@@ -21,40 +21,9 @@ Omit if all behavioral changes obvious from diff.
 
 ## 2. Change Flow Diagram (`## Change Flow`)
 
-Single unified diagram showing how control/data flow changes. NOT a static component map — show delta narrative.
+Single ```mermaid``` diagram showing how control/data flow changes. NOT a static component map — show delta narrative.
 
-**Change markers in diagram:**
-- `[+ component]` — newly added
-- `[- component]` — removed
-- `[~ component]` — modified
-- Unmarked — unchanged context (enough to show where changes fit)
-
-**Changes legend** below diagram — one line per marker explaining what changed and why:
-```
-  + ComponentName — what it does / why added
-  ~ ComponentName — how it changed
-  - ComponentName — why removed
-```
-
-**Rules:**
-- Box-drawing chars (`┌ ┐ └ ┘ │ ─ ┬ ┴ ├ ┤ ┼`) for borders
-- Arrows (`───>`, `- - ->`, `<───`, `│` with `▼`/`▲`) for flow
-- Dashed borders (`╌╌╌` or `- - -`) for optional/external/planned
-- Max 160 columns wide
-- Show flow path through system, not inventory of boxes
-
-**Example:**
-```
-req ───> [~ AuthMiddleware] ───> [+ RedisCache] ─ hit ──> handler
-                                       │
-                                    miss
-                                       ▼
-                                   UserRepo ───> DB
-
-Changes:
-  ~ AuthMiddleware — added cache check before DB lookup
-  + RedisCache — token lookup with 5m TTL, falls through to DB on miss
-```
+Author per the `diagram` skill's **delta mode**: `classDef added/modified/removed` + `+`/`~`/`-` label prefixes, unmarked nodes for unchanged context, a `Changes:` legend below. Scope to the changed surface.
 
 Trivial changes (1-2 small files, no flow impact): skip diagram.
 
