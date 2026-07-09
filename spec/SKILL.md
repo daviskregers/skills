@@ -21,6 +21,10 @@ Build the spec up front so the implementation agent doesn't rediscover scope mid
 
 Wait for user to confirm/correct direction. Mis-scoped here = cheap; mid-impl = not. This gate prevents rubber-stamping a wrong scope.
 
+### High-stakes design forks (judge panel)
+
+If the approach is a genuine fork — irreversible, wide blast radius, or you're circling without converging — don't present a single approach. Generate 2–3 independent candidates and score them with a **clean-context judge panel**: separate agents, each scoring the candidates blind to the others' verdicts, on explicit criteria (correctness, blast radius, reversibility, complexity). Recommend from the winner, grafting the best ideas from runners-up; surface the losing trade-offs so the user decides. Gate by stakes — skip for routine/reversible calls. Heavy fan-out → the Workflow tool's "judge panel" pattern.
+
 ## Phase 2 — Draft
 
 After confirmation, write the spec:

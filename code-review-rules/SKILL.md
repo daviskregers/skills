@@ -3,9 +3,19 @@ name: code-review-rules
 description: Review categories, output format, and save instructions for code reviews. Use when performing code reviews on local changes or pull requests.
 ---
 
+## Review Altitudes
+
+Review top-down — a flawless implementation of an unnecessary or contract-missing change is still a bad change. Cover all three before the code-correctness categories below:
+
+### Change necessity — does this need to exist?
+Challenge the justification. Flag: net-new abstraction with a single caller, re-implementation of a stdlib/framework/existing util, speculative generality, dead-on-arrival code, or a change patching a symptom that a smaller upstream fix would remove. When necessity is a judgment call above the diff, raise it as `❓ q:`, don't hard-flag — but always raise it.
+
+### Acceptance criteria — does it meet the stated contract?
+If the task/ticket/PR states acceptance criteria, list each and mark met / not-met / unclear, citing the line that satisfies it. No AC stated → that is itself a finding (`❓ q:` "no acceptance criteria given; here's the contract I inferred — confirm"); never invent ACs and grade silently. Code beyond the stated AC is a finding too — scope creep.
+
 ## Review Categories
 
-For each issue: reference **file path** + line number(s). Never shorten to just filename — always full directory structure.
+Code-correctness altitude. For each issue: reference **file path** + line number(s). Never shorten to just filename — always full directory structure.
 
 ### Critical Issues
 - Bugs, logic errors
@@ -95,6 +105,10 @@ Only report findings you'd bet on. Before including any finding:
 - **Uncertain?** Use `❓ q:` to ask, don't flag as issue. Questions cheap; false positives waste time.
 - **Style disagreements aren't findings** — unless it measurably hurts readability or causes bugs, skip it.
 
+## Adversarial Verification
+
+A finding survives only if an INDEPENDENT check can't refute it. For each material finding (Critical/Warning) and each not-met AC, a verifier with CLEAN context — given only the diff + the single claim, NOT the reviewer's reasoning — tries to REFUTE it, defaulting to "not a real issue" unless it can demonstrate the failure with a concrete input/path. Drop findings that don't survive; keep survivors, noting any residual uncertainty. Suggestions / optimizations / `❓ q:` skip this (cheap, low-risk). Orchestration: `/code-review`.
+
 ## Output Format
 
 Use markdown heading hierarchy for Neovim folding. **Line length limit:** max 160 chars per line.
@@ -174,6 +188,7 @@ Include when:
 - **Algorithms** — sorting choices, search strategies, when brute force beats clever
 - **Design patterns** — pattern that fits here, why, and when it doesn't
 - **Runtime/framework internals** — one layer below API surface
+- **Short-circuit / operand & guard ordering** — cheaper or likelier-decisive operand first when readability is unchanged (`$var or f()` not `f() or $var`); guard clauses reordered by cost. A free micro-win IS worth an optimization note here — this is the deliberate line-level craft, distinct from subjective style.
 
 Skip when obvious. Only include when genuinely educational.
 

@@ -15,6 +15,8 @@ TDD rules. Apply to all test-writing workflows.
 
 Test MUST fail before fix, pass after. Both states demonstrated. No fail→pass transition = test validates nothing.
 
+RED must exercise the REAL production code, not a duplicate of the logic copied into the test file — a test that passes immediately proves nothing. If the real code is hard to bootstrap (facades, framework glue, UI/keymap/"shell" wiring), that's the signal to extract the logic into a testable seam and test THAT — not to skip. No layer is exempt: "it's just wiring/UI" is not an exemption. Make the thin remaining shell fail loud (visible error/notify), never swallow.
+
 ## Rollback Protocol
 
 Test needs change during impl (wrong assertion/setup/misunderstood behavior):
