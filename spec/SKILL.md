@@ -33,7 +33,7 @@ After confirmation, write the spec:
 - **Acceptance criteria** — checkable boxes, behavioral. Not "works".
 - **Scope** — files/endpoints to touch (Phase 1, corrected).
 - **Constraints / don't-break** — shared callers, auth boundaries, formats to preserve.
-- **Calibration** — `DEEP REVIEW` (read the diff) vs `OUTCOME-ONLY` (verify green, don't read every line). Touches shared/critical path, or subtle-wrong is expensive → deep. One-shot / mechanical / scripted → outcome.
+- **Calibration** — `DEEP REVIEW` (read the diff) vs `OUTCOME-ONLY` (verify green, don't read every line). Touches shared/critical path, or subtle-wrong is expensive → deep. One-shot / mechanical / scripted → outcome. Spec/review DEPTH scales with blast-radius + unfamiliarity, NOT with how easy the change is to describe — the well-understood, high-stakes change (shared infra, a targeted fix) is exactly the one you're tempted to hand off thin, and exactly the one that most needs a deep spec.
 
 Present draft. User corrects — this is the judgment step, don't skip it.
 

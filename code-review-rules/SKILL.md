@@ -188,7 +188,7 @@ Include when:
 - **Algorithms** — sorting choices, search strategies, when brute force beats clever
 - **Design patterns** — pattern that fits here, why, and when it doesn't
 - **Runtime/framework internals** — one layer below API surface
-- **Short-circuit / operand & guard ordering** — cheaper or likelier-decisive operand first when readability is unchanged (`$var or f()` not `f() or $var`); guard clauses reordered by cost. A free micro-win IS worth an optimization note here — this is the deliberate line-level craft, distinct from subjective style.
+- **Short-circuit / operand & guard ordering** — only when it PRESERVES behavior: operands must be side-effect-free (a call that mutates/throws/IO can't be reordered), and a precondition guard (null/existence check) must stay before whatever assumes it. Given that, put the cheaper or likelier-decisive operand first (`$var or f()`). Never flag a reorder that could change behavior as a "win".
 
 Skip when obvious. Only include when genuinely educational.
 

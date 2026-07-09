@@ -15,7 +15,7 @@ TDD rules. Apply to all test-writing workflows.
 
 Test MUST fail before fix, pass after. Both states demonstrated. No fail→pass transition = test validates nothing.
 
-RED must exercise the REAL production code, not a duplicate of the logic copied into the test file — a test that passes immediately proves nothing. If the real code is hard to bootstrap (facades, framework glue, UI/keymap/"shell" wiring), that's the signal to extract the logic into a testable seam and test THAT — not to skip. No layer is exempt: "it's just wiring/UI" is not an exemption. Make the thin remaining shell fail loud (visible error/notify), never swallow.
+RED must exercise the REAL production code, not a duplicate of the logic copied into the test file — a test that passes immediately proves nothing. If the real code is hard to bootstrap (facades, framework glue, UI/keymap/"shell" wiring), that's the signal to extract the logic into a real collaborator (a unit with its own reason to exist) and test THAT — not to skip. No layer is exempt: "it's just wiring/UI" is not an exemption. Make the thin remaining shell fail loud (visible error/notify), never swallow.
 
 ## Rollback Protocol
 
@@ -31,12 +31,15 @@ Never skip "verify fail without fix" step.
 
 ## Test Quality
 
-- One assertion per test. Clear name = expected behavior.
+- One behavior per test (multiple assertions on that one behavior are fine — e.g. status AND error field; don't bundle unrelated behaviors). Clear name = expected behavior.
 - Deterministic. No timing/random/network without mocks.
 - Match project test framework, file structure, naming.
 - Cover: happy path, empty/null/zero, boundaries, errors, all branches.
 - Minimal setup. Don't over/under-mock.
 - Test behavior not implementation. Refactors shouldn't break tests.
+- No production test seams — never add wrappers, protected override hooks, or DI whose sole purpose is testability; nothing in production should reference "tests" or carry test-only indirection. Extract a real collaborator only if it earns its keep; else leave a small, shallow branch untested rather than deform the source.
+- No tautological tests — don't assert schema/structure a migration just created (`hasColumn` after adding it); test the behavior that depends on it. Migrations themselves: write directly, no preceding test; cover downstream behavior (relations, roundtrips, controller writes).
+- No branching logic in a test — no `if`/loops/conditional expectations computed in the test body. Behavior is fixed and known; cover branches as separate cases, not a conditional inside one test.
 
 ## Contract Migration
 
