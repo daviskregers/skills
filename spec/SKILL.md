@@ -36,6 +36,7 @@ After confirmation, write the spec:
 - **Constraints / don't-break** — shared callers, auth boundaries, formats to preserve.
 - **Test plan** — failing test per AC first (TDD); for a bug, the repro. Load `tdd`.
 - **Calibration** — `DEEP REVIEW` (read diff) vs `OUTCOME-ONLY` (verify green). Shared/critical path or subtle-wrong-expensive → deep; one-shot/mechanical/scripted → outcome. Depth scales with blast-radius + unfamiliarity, NOT describability — the well-understood high-stakes change is the one you're tempted to hand off thin, and the one that most needs depth.
+- **Refute before handoff (high-stakes)** — shared/irreversible/critical-path or multi-PR decomposition: fresh-context adversarial pass on the drafted spec — agent given only ticket + spec, tasked to find the fatal flaw (unstated assumption, un-enumerated data-path consumer, mis-sequenced/oversized slice, AC with no verification step). Per Planning rule. Distinct from Phase-1's judge panel (fork selection) — this refutes the chosen plan. Skip routine/reversible.
 
 Present draft. User corrects — this is the judgment step, don't skip it.
 
