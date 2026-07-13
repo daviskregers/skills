@@ -26,43 +26,43 @@ Classify each decision:
 - **load-bearing** → needs YOU: irreversible / wide blast radius / defines logic correctness / crosses layers / touches security or data integrity / you'd have caught a past bug here.
 - **trivial/mechanical** → AI decides, just records its default (you can override, but no gate).
 
-Only load-bearing decisions become prediction gates. Everything else moves fast. If everything triages trivial, say so — don't manufacture gates.
+Only load-bearing decisions become prediction gates. Everything else moves fast. If everything triages trivial, say so — don't manufacture gates. **>~3 gates = signal to split the task** (driver-gate mechanic 2); if genuinely irreducible, gate all but flag it's heavy — never drop a real gate to hit a number.
 
 ## Phase 3 — Emit map + STOP (answers WITHHELD)
 
 Write scratch markdown to `.dave-ai-tasks/<TICKET>.map.md` (ID, or slug if none; create dir if absent). Structure:
 
-- **Per load-bearing decision** — grep-style anchors (`path:line` + one line of what's there), the question, and `→ your call: [ ]`. **Do NOT write your own answer.** The point is you commit before you see AI's.
+- **Per load-bearing decision** — grep-style anchors (`path:line` + one **neutral factual** line of what exists there — never "no X"/"missing", which telegraph the answer), the question, and `→ your call + why: [ ]`. **Do NOT write your own answer.** The point is you commit — with a reason from the code — before you see AI's.
 - **Trivial decisions** — one line each + AI's chosen default (transparency, not a gate).
-- **Raw territory** — relevant anchors not tied to a decision, for context.
+- **Raw territory** — relevant anchors not tied to a decision, for context. Enumerate the touchpoints; don't hand-pick the subset that points one way.
 - **Prompt** — "Add any decision I didn't flag." Explicitly invite the miss — AI's grouping is a menu, not the ceiling.
 
-Example block:
+Example block (anchors state what IS, not what's absent):
 ```
-## Decision: where is org uniqueness enforced?  [load-bearing]
+## Decision: which layer owns org uniqueness?  [load-bearing]
 current enforcement:
-  app/Http/Controllers/OrgController.php:88   validateUnique() inline
-  app/Models/Organisation.php:34              no constraint
-  database/migrations/..._orgs.php:12         no unique index
+  app/Http/Controllers/OrgController.php:88   validateUnique() called inline
+  app/Models/Organisation.php:34              fillable: name, slug; casts only
+  database/migrations/..._orgs.php:12         columns: id,name,slug; indexes: id
 depends on this:
-  app/Services/LoginResolver.php:51           assumes controller guarantees it
-question: which layer owns uniqueness, and why?
-→ your call: [ ]
+  app/Services/LoginResolver.php:51           reads Organisation::where(slug)
+question: which layer should own uniqueness, and why?
+→ your call + why: [ ]
 ```
 
 **Auto-open (wanted path = zero friction):** after writing the file, drop the user straight into it — `tmux new-window -n map "nvim <path>"` (or `split-window`). Engaging the territory is the default action, not an opt-in. If tmux isn't present / command fails, fall back to printing the path. Don't claim it opened if it didn't.
 
-Then STOP. User opens anchors in their editor, builds the model, fills each `→ your call`. Do NOT proceed or reveal AI's opinion until calls are filled.
+Then STOP. User opens anchors in their editor, builds the model, fills each `→ your call + why`. Can't form a *why* from the code → that's the signal to build the model first (`explain`/`tutor`), not to guess. Do NOT proceed or reveal AI's opinion until calls are filled.
 
 **Friction asymmetry (unwanted path = tedious + visible):**
-- A load-bearing `→ your call` left blank, or filled with "fix"/"you decide"/deferral, does NOT let the flow proceed. To skip, the user must type `SKIP: <reason>` on that line — deciding is *less* effort than justifying not-deciding.
+- A load-bearing `→ your call` left blank, filled with "fix"/"you decide"/deferral, or given a bare verdict with no *why*, does NOT let the flow proceed. To skip, the user must type `SKIP: <reason>` on that line — deciding-with-a-why is *less* effort than justifying not-deciding.
 - Every `SKIP:` is carried forward verbatim into downstream output (spec / PR) as an explicit **"un-owned decision"** line. The rubber-stamp leaves a visible mark for the user and reviewers — it stops being free.
 
 ## Phase 4 — Reveal + challenge (after user fills)
 
 1. **Now** reveal AI's own answer + reasoning per load-bearing decision. Where it diverges from the user's call → dig there: that gap is the user's judgment firing (or a real risk on one side). Don't smooth it over.
-2. **Refute the user's calls** — clean-context adversarial pass: what breaks if each call is wrong? Un-enumerated consumer, contract mismatch, missed edge. This is where adversarial review belongs — on decisions the user OWNS, not on AI's plan.
-3. Output the decided calls (user's, adjusted by the divergence discussion) — ready to feed planning. When invoked by `/spec`, these become Phase-2 draft input.
+2. **Refute symmetrically** — clean-context adversarial pass on BOTH calls: what breaks if the user's call is wrong (un-enumerated consumer, contract mismatch, missed edge) AND what breaks if AI's is. Attack AI's answer as hard as the user's — don't let the reveal quietly become the decision.
+3. **The user's pre-reveal call binds** unless they overturn it with a stated reason. Output the decided calls — ready to feed planning. When invoked by `/spec`, these become Phase-2 draft input.
 
 ## Rules
 
