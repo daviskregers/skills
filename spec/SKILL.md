@@ -12,7 +12,7 @@ Build the spec up front so the implementation agent doesn't rediscover scope mid
 
 ## Phase 1 — Scout (STOP at end, do NOT draft)
 
-1. Fetch ticket (Linear MCP) if ID given. Extract goal + stated AC.
+1. Fetch ticket (Linear MCP) if ID given — MCP down / bad ID → proceed from user text, note the gap. Extract goal + stated AC. Task too vague to scout → STOP, ask first.
 2. Fan out read-only explore subagents (parallel) to locate actual touchpoints: files, endpoints, call-sites, shared services the change rides on. Read-only — no edits in `/spec`.
 3. Present, then STOP for confirmation:
    - **Scope found** — concrete files/endpoints.
@@ -30,10 +30,12 @@ If the approach is a genuine fork — irreversible, wide blast radius, or you're
 After confirmation, write the spec:
 
 - **Goal** — 1 line.
-- **Acceptance criteria** — checkable boxes, behavioral. Not "works".
-- **Scope** — files/endpoints to touch (Phase 1, corrected).
+- **Acceptance criteria** — checkable boxes, behavioral, each paired 1:1 with how it's verified. Not "works".
+- **Scope** — files/endpoints to touch (Phase 1, corrected) + reference pattern(s) to mirror (`path:line`).
+- **Out of scope** — deferred/adjacent work → tickets (surface-and-park), not silent drops.
 - **Constraints / don't-break** — shared callers, auth boundaries, formats to preserve.
-- **Calibration** — `DEEP REVIEW` (read the diff) vs `OUTCOME-ONLY` (verify green, don't read every line). Touches shared/critical path, or subtle-wrong is expensive → deep. One-shot / mechanical / scripted → outcome. Spec/review DEPTH scales with blast-radius + unfamiliarity, NOT with how easy the change is to describe — the well-understood, high-stakes change (shared infra, a targeted fix) is exactly the one you're tempted to hand off thin, and exactly the one that most needs a deep spec.
+- **Test plan** — failing test per AC first (TDD); for a bug, the repro. Load `tdd`.
+- **Calibration** — `DEEP REVIEW` (read diff) vs `OUTCOME-ONLY` (verify green). Shared/critical path or subtle-wrong-expensive → deep; one-shot/mechanical/scripted → outcome. Depth scales with blast-radius + unfamiliarity, NOT describability — the well-understood high-stakes change is the one you're tempted to hand off thin, and the one that most needs depth.
 
 Present draft. User corrects — this is the judgment step, don't skip it.
 
@@ -41,9 +43,9 @@ Present draft. User corrects — this is the judgment step, don't skip it.
 
 On approval:
 
-1. Save to `.dave-ai-tasks/<TICKET>.md` (create dir if absent). Match existing file convention.
+1. Save to `.dave-ai-tasks/<TICKET>.md` (ID, or a slug from the task if no ID; create dir if absent). Match existing file convention.
 2. Use the approved spec as the implementation agent's opening prompt — context already loaded, no re-exploration.
-3. If batched and the work partitions into independent file-scoped chunks → hand partitions to parallel agents.
+3. Fan out to parallel agents ONLY if partitions are independently reviewable with no cross-partition contract coupling (file-disjoint ≠ independent) — and confirm that split separately, don't fold it into the spec approval.
 
 ## Rules
 
