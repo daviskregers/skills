@@ -42,6 +42,7 @@ State that the probe is built and what each check exercises — the `.http`/fixt
 - **Match** → AC confirmed (the user owns it — they saw it).
 - **Mismatch** → real bug; route to a TDD fix (failing test reproducing what they saw, then fix).
 - **Skipped** → the AC is marked `UNVERIFIED` (via `SKIP: <reason>`), carried into the PR as an explicit unverified line — never a checked box. Skipping leaves a visible mark; running is one paste/click.
+- **Open PR for this changeset?** (`gh pr view --json url`) → delegate a **Verification ledger** refresh to the `pr-describer` agent (never edit the description inline), one line per eyes-on AC: `✅ verified` (what was exercised) / `⚠️ UNVERIFIED: <reason>` / `N/A: <why>`. Pass the probe outcomes; it updates only the ledger section. No PR → skip.
 
 ## Rules
 

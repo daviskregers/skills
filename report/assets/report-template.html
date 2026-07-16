@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<!--
+  REPORT TEMPLATE — authored by the `report` skill.
+  Fill the AUTHOR blocks (search "AUTHOR:"). Keep the CSS/JS scaffold intact.
+  Rules this template enforces: dark-default (light toggle), scientific [n] citations
+  with hovercards -> quote + open-source, glossary term hovercards, in-memory
+  annotation tool (with edit), Mermaid diagrams with click-to-zoom/pan + persistent legend.
+  Self-contained except two CDNs (mermaid, svg-pan-zoom) — needs internet for diagrams only.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><!-- AUTHOR: title (also fill the <h1> below; if this is left as the placeholder, JS falls back to the h1) -->Report Title</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#0f1116; --surface:#171a21; --surface-2:#1e222b; --border:#2c313c;
+    --text:#e7e9ee; --muted:#9aa3b0; --accent:#8aa2ff; --accent-soft:#1c2540;
+    --indep:#5fd08a; --indep-soft:#14301f; --vendor:#e8b25a; --vendor-soft:#33280f;
+    --warn:#f07575; --warn-soft:#3a1717; --radius:12px; --maxw:860px;
+  }
+  html.light {
+    color-scheme: light;
+    --bg:#ffffff; --surface:#f6f7f9; --surface-2:#eef0f3; --border:#d9dde3;
+    --text:#1a1d23; --muted:#5b636e; --accent:#3b5bdb; --accent-soft:#e7ecff;
+    --indep:#1f8a4c; --indep-soft:#e3f5ea; --vendor:#b06a00; --vendor-soft:#fbefd8;
+    --warn:#c02d2d; --warn-soft:#fbe6e6;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); padding:0 20px;
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:48px 0 80px; }
+  header.masthead { border-bottom:2px solid var(--border); padding-bottom:24px; margin-bottom:8px; }
+  .kicker { text-transform:uppercase; letter-spacing:.08em; font-size:12px; font-weight:700; color:var(--accent); }
+  h1 { font-size:30px; line-height:1.2; margin:8px 0 6px; }
+  .sub { color:var(--muted); font-size:15px; margin:0; }
+  .meta { color:var(--muted); font-size:13px; margin-top:14px; }
+  h2 { font-size:22px; margin:44px 0 4px; padding-top:8px; }
+  h2 .num { color:var(--accent); font-variant-numeric:tabular-nums; }
+  h3 { font-size:17px; margin:26px 0 6px; }
+  p { margin:10px 0; }
+  a { color:var(--accent); text-decoration:none; border-bottom:1px solid transparent; }
+  a:hover { border-bottom-color:var(--accent); }
+  ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  .lead { font-size:17px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:20px 0 8px; }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+  .stat .big { font-size:26px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .stat .lbl { font-size:12.5px; color:var(--muted); margin-top:4px; }
+  .callout { border-left:3px solid var(--accent); background:var(--surface); border-radius:0 var(--radius) var(--radius) 0; padding:12px 16px; margin:16px 0; }
+  .callout.warn { border-left-color:var(--warn); background:var(--warn-soft); }
+  .callout .tag { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .pill { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; vertical-align:middle; margin-left:6px; }
+  .pill.ind { color:var(--indep); background:var(--indep-soft); }
+  .pill.ven { color:var(--vendor); background:var(--vendor-soft); }
+  /* profile card (optional component: labelled dimensions per subject) */
+  .co { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; margin:14px 0; }
+  .co-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .co-hd h3 { margin:0; font-size:18px; }
+  .co-hd .tag2 { font-size:11px; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:1px 8px; }
+  .co-hd .verdict { margin-left:auto; font-weight:700; font-size:13px; white-space:nowrap; }
+  .co dl { display:grid; grid-template-columns:max-content 1fr; gap:5px 14px; margin:0; }
+  .co dt { font-weight:700; color:var(--accent); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; padding-top:3px; }
+  .co dd { margin:0; font-size:14.5px; }
+  @media (max-width:560px) { .co dl { grid-template-columns:1fr; gap:2px 0; } .co dt { margin-top:8px; } }
+  table { border-collapse:collapse; width:100%; margin:14px 0; font-size:14px; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--border); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--surface-2); font-weight:600; }
+  .sources { margin-top:10px; }
+  .src { display:flex; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); align-items:baseline; }
+  .src:last-child { border-bottom:none; }
+  .src .name { font-weight:600; }
+  .src .note { color:var(--muted); font-size:13.5px; display:block; margin-top:2px; }
+  .legend { font-size:13px; color:var(--muted); margin:6px 0 0; display:flex; gap:16px; flex-wrap:wrap; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .toc { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; margin:20px 0; }
+  .toc a { display:inline-block; margin-right:14px; font-size:14px; }
+  footer { margin-top:48px; padding-top:18px; border-top:1px solid var(--border); color:var(--muted); font-size:13px; }
+  /* citations + glossary */
+  sup.ref { font-size:11px; line-height:0; white-space:nowrap; }
+  sup.ref a { color:var(--accent); font-weight:700; text-decoration:none; border:none; }
+  sup.ref a:hover { text-decoration:underline; }
+  .refnum { display:inline-block; min-width:26px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .src[id] { scroll-margin-top:14px; } .src[id]:target { background:var(--accent-soft); border-radius:8px; }
+  .term { border-bottom:1px dotted var(--muted); cursor:help; }
+  .term:hover { border-bottom-color:var(--accent); color:var(--accent); }
+  .term:focus { outline:2px solid var(--accent); outline-offset:1px; border-radius:2px; }
+  .glossary-print { display:none; }
+  /* mermaid + zoom lightbox */
+  .mermaid { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin:14px 0; text-align:center; }
+  .mermaid-error { color:#f87171; font-size:12px; text-align:left; margin-bottom:8px; }
+  .mermaid-error + pre { text-align:left; margin:0; font-size:12px; overflow:auto; }
+  .figure { position:relative; }
+  .figure .zoom-hint { position:absolute; top:8px; right:10px; font-size:11px; color:var(--muted); background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:3px 9px; pointer-events:none; opacity:.85; }
+  .figure .mermaid { cursor:zoom-in; }
+  #lb { position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.82); display:none; }
+  #lb.open { display:block; }
+  #lb .bar { position:absolute; top:12px; left:12px; right:12px; height:40px; z-index:5; display:flex; align-items:center; gap:10px; color:var(--text); }
+  #lb .bar .title { font-weight:700; } #lb .bar .hint { color:var(--muted); font-size:12px; margin-right:auto; }
+  #lb .stage { position:absolute; inset:56px 12px 12px; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  #lb button { background:var(--surface-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:13px; cursor:pointer; }
+  #lb .legendbox { position:absolute; left:24px; bottom:24px; z-index:6; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px; max-width:70%; box-shadow:0 6px 24px rgba(0,0,0,.4); display:none; }
+  #lb .legendbox.on { display:block; }
+  /* theme toggle */
+  #theme-toggle { position:fixed; top:14px; right:16px; z-index:9995; font:600 13px/1 inherit; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  /* annotation tool */
+  mark.annot { background:rgba(138,162,255,.28); color:inherit; border-radius:3px; padding:0 1px; cursor:pointer; }
+  sup.annot-badge { font-size:10px; font-weight:700; color:var(--accent); background:var(--accent-soft); border-radius:999px; padding:0 5px; margin-left:2px; vertical-align:super; }
+  #annot-pop { position:fixed; z-index:9999; display:none; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.4); padding:8px; }
+  #annot-pop button.mini { font:600 13px/1 inherit; background:var(--accent); border:none; border-radius:7px; padding:7px 11px; cursor:pointer; color:#0f1116; }
+  #annot-pop textarea, .annot-item.gedit textarea { display:block; width:260px; height:64px; resize:vertical; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:7px; padding:7px; font:14px/1.4 inherit; }
+  #annot-pop .row, .annot-item.gedit .row { display:flex; gap:6px; justify-content:flex-end; margin-top:6px; }
+  #annot-pop .row button, .annot-item.gedit .row button { font:600 13px/1 inherit; border-radius:7px; padding:6px 10px; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text); }
+  #annot-pop .row button.save, .annot-item.gedit .row button.save { background:var(--accent); color:#0f1116; border-color:var(--accent); }
+  #annot-bar { position:fixed; right:18px; bottom:18px; z-index:9998; width:320px; max-width:calc(100vw - 36px); background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.45); font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  #annot-bar .hd { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); cursor:pointer; }
+  #annot-bar .hd .count { font-size:12px; color:var(--muted); } #annot-bar .hd .chev { margin-left:auto; color:var(--muted); transition:transform .15s; }
+  #annot-bar.collapsed .chev { transform:rotate(180deg); } #annot-bar.collapsed .bd { display:none; }
+  .genbtn { display:block; width:calc(100% - 24px); margin:10px 12px 2px; font:600 13px/1 inherit; padding:9px; border-radius:8px; cursor:pointer; background:var(--surface-2); color:var(--text); border:1px dashed var(--border); }
+  .genbtn:hover { border-color:var(--accent); color:var(--accent); }
+  #annot-list { max-height:40vh; overflow:auto; padding:4px 0; } #annot-list .empty { color:var(--muted); font-size:13px; padding:12px; }
+  .annot-item { padding:9px 12px; border-bottom:1px solid var(--border); } .annot-item:last-child { border-bottom:none; }
+  .annot-item .q { font-size:12.5px; color:var(--muted); font-style:italic; } .annot-item .g { font-size:12.5px; color:var(--accent); font-weight:700; }
+  .annot-item .c { font-size:13.5px; margin-top:2px; } .annot-item .n { font-weight:700; color:var(--accent); }
+  .annot-item .acts { float:right; display:flex; gap:8px; }
+  .annot-item .acts button { color:var(--muted); cursor:pointer; border:none; background:none; font-size:13px; line-height:1; }
+  .annot-item .acts button:hover { color:var(--accent); } .annot-item .acts button.del:hover { color:var(--warn); }
+  #annot-bar .actions { display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--border); }
+  #annot-bar .actions button { flex:1; font:600 13px/1 inherit; border-radius:8px; padding:9px; cursor:pointer; }
+  #annot-bar .actions .copy { background:var(--accent); color:#0f1116; border:none; }
+  #annot-bar .actions .clear { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  #annot-modal { position:fixed; inset:0; z-index:10001; display:none; background:rgba(0,0,0,.6); align-items:center; justify-content:center; padding:24px; }
+  #annot-modal .box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; width:min(640px,100%); }
+  #annot-modal h3 { margin:0 0 8px; font-size:16px; }
+  #annot-modal textarea { width:100%; height:300px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; font:13px/1.5 ui-monospace,Menlo,Consolas,monospace; }
+  #annot-modal .row { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+  #annot-modal .row button { font:600 13px/1 inherit; border-radius:8px; padding:9px 14px; cursor:pointer; border:1px solid var(--border); background:var(--surface-2); color:var(--text); }
+  #annot-modal .row button.primary { background:var(--accent); color:#0f1116; border-color:var(--accent); }
+  #cite-pop { position:fixed; z-index:9996; display:none; max-width:340px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,.5); padding:12px 14px; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--text); }
+  #cite-pop .ct { font-weight:700; font-size:13.5px; margin-bottom:5px; }
+  #cite-pop .cq { font-size:12.5px; color:var(--muted); font-style:italic; margin:0 0 9px; border-left:2px solid var(--accent); padding-left:8px; }
+  #cite-pop .cnote { font-size:12.5px; color:var(--muted); margin:0 0 9px; }
+  #cite-pop .cbtns { display:flex; gap:8px; }
+  #cite-pop a.cbtn { display:inline-block; font:600 12.5px/1 inherit; padding:7px 11px; border-radius:7px; text-decoration:none; border:1px solid var(--border); color:var(--text); cursor:pointer; }
+  #cite-pop a.cbtn.primary { background:var(--accent); color:#0f1116; border-color:var(--accent); }
+  #annot-toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:10002; background:var(--indep); color:#06210f; font-weight:700; padding:9px 16px; border-radius:999px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  @media print {
+    #annot-bar,#annot-pop,#annot-modal,#cite-pop,#theme-toggle,#lb,sup.annot-badge { display:none !important; }
+    mark.annot { background:none; } a { color:var(--text); border:none; }
+    .glossary-print { display:block !important; margin-top:24px; }
+    .glossary-print dt { font-weight:700; margin-top:8px; } .glossary-print dd { margin:0 0 6px; }
+  }
+</style>
+</head>
+<body>
+<button id="theme-toggle">☀ Light</button>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker">Field Report</div>
+    <h1><!-- AUTHOR: title -->Report Title</h1>
+    <p class="sub"><!-- AUTHOR: one-line subtitle --></p>
+    <p class="meta">Compiled <!-- AUTHOR: date --> from research · Sources tagged
+      <span class="pill ind">independent</span> vs <span class="pill ven">vendor / self-interested</span> ·
+      Hover (or tap/focus) a <span class="term" data-term="citation">[n]</span> for the source; hover a dotted term for a definition.</p>
+  </header>
+
+  <div class="toc"><strong>Jump to:</strong>
+    <!-- AUTHOR: <a href="#sec1">1 · …</a> per section, plus <a href="#refs">N · References</a> -->
+  </div>
+
+  <!-- ============ AUTHOR: SECTIONS ============
+       Patterns to copy:
+       Stat row:   <div class="stats"><div class="stat"><div class="big">51%</div><div class="lbl">claim<sup class="ref">[<a href="#ref1">1</a>]</sup></div></div></div>
+       Citation:   sentence.<sup class="ref">[<a href="#ref1">1</a>,&nbsp;<a href="#ref2">2</a>]</sup>
+       Glossary:   nothing inline — add the term to the GLOSSARY object in the script; the first mention per section auto-links.
+       Callout:    <div class="callout warn"><span class="tag">Label</span><p style="margin:4px 0 0">…</p></div>
+       Table:      plain <table><tr><th>…</th></tr><tr><td>…</td></tr></table> (styled + horizontally scrollable).
+       Diagram:    put a <div class="legend">…</div> immediately before a <div class="mermaid">flowchart TD …</div>
+                   → the legend shows inside the zoom lightbox. Click the diagram to zoom/pan.
+  -->
+  <h2 id="sec1"><span class="num">1.</span> Section</h2>
+  <p class="lead">Lead sentence.<sup class="ref">[<a href="#ref1">1</a>]</sup></p>
+
+  <!-- ============ REFERENCES ============ -->
+  <h2 id="refs"><span class="num">N.</span> References</h2>
+  <p class="legend"><span class="pill ind">independent</span> = no commercial stake · <span class="pill ven">vendor</span> = sells a related product. Superscripts link here; hover them for a quote + open-source.</p>
+  <div class="sources">
+    <!-- AUTHOR: one row per ref, id="refN", contiguous. Include date + independent/vendor tag.
+         Deep-link the URL with a #:~:text= fragment where a quote exists — the hovercard shows it. -->
+    <div class="src" id="ref1"><span class="refnum">1.</span><span class="name"><a href="https://example.com#:~:text=verbatim%20quote">Source title</a> <span class="pill ind">independent</span><span class="note">what it backs · date</span></span></div>
+  </div>
+
+  <footer>
+    Generated from research on <!-- AUTHOR: date -->. Verify specifics against the linked sources before citing; independent/vendor tags are a judgment call.
+    <br>🤖 Generated with AI
+  </footer>
+</div>
+
+<!-- annotation + citation + lightbox UI -->
+<div id="annot-pop"></div>
+<div id="annot-bar" class="collapsed">
+  <div class="hd" id="annot-hd"><b>📝 Annotations</b> <span class="count" id="annot-count">0</span><span class="chev">▲</span></div>
+  <div class="bd">
+    <button class="genbtn" id="annot-general">＋ Add general comment</button>
+    <div id="annot-list"><div class="empty">Select text and click <b>Comment</b> for an inline note, or add a general comment above. Nothing is saved — refresh to clear.</div></div>
+    <div class="actions"><button class="copy" id="annot-copy">Copy all</button><button class="clear" id="annot-clear">Clear</button></div>
+  </div>
+</div>
+<div id="annot-modal"><div class="box"><h3>Copy these annotations &amp; paste them back in chat</h3>
+  <textarea id="annot-out" readonly></textarea>
+  <div class="row"><button id="annot-modal-copy" class="primary">Copy to clipboard</button><button id="annot-modal-close">Close</button></div>
+</div></div>
+<div id="annot-toast">Copied!</div>
+<div id="cite-pop"></div>
+<div id="lb" role="dialog" aria-modal="true">
+  <div class="bar"><span class="title" id="lb-title">Diagram</span><span class="hint">scroll = zoom · drag = pan</span>
+    <button id="lb-in">+</button><button id="lb-out">−</button><button id="lb-reset">Fit</button><button id="lb-close">✕ Close</button></div>
+  <div class="stage" id="lb-stage"></div>
+  <div class="legendbox" id="lb-legend"></div>
+</div>
+
+<script>
+/* ===== GLOSSARY — AUTHOR: add People / Companies / Technologies that need a hover definition.
+   d = definition; u = "#refN" to link a reference (optional). First mention per section auto-links. ===== */
+var GLOSSARY = {
+  'citation': { d: 'A numbered source reference — hover to see the source title + a quote, or click to jump to the reference list.', u: '' }
+  // 'Company X': { d: 'What it is.', u: '#ref1' },
+};
+
+/* ---- title: fall back to the <h1> if the <title> was left as the placeholder (footgun guard) ---- */
+(function () { var h = document.querySelector('.masthead h1'); if (h && (!document.title || /Report Title/.test(document.title))) document.title = h.textContent.trim(); })();
+
+/* ---- theme toggle (persisted; annotations are NOT persisted) ---- */
+(function () {
+  var t = document.getElementById('theme-toggle');
+  try { if (localStorage.getItem('report-theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}
+  function label() { t.textContent = document.documentElement.classList.contains('light') ? '☾ Dark' : '☀ Light'; }
+  label();
+  t.onclick = function () {
+    document.documentElement.classList.toggle('light');
+    try { localStorage.setItem('report-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch (e) {}
+    label();
+  };
+})();
+
+/* ---- annotation tool (in-memory; select->comment, general comment, edit, copy) ---- */
+(function () {
+  var anns = [], seq = 0, pendingRange = null;
+  var content = document.querySelector('.wrap'), pop = document.getElementById('annot-pop'), bar = document.getElementById('annot-bar');
+  var listEl = document.getElementById('annot-list'), countEl = document.getElementById('annot-count');
+  var modal = document.getElementById('annot-modal'), out = document.getElementById('annot-out'), toast = document.getElementById('annot-toast');
+  function inUI(node) { while (node) { if (node.id === 'annot-bar' || node.id === 'annot-pop' || node.id === 'annot-modal') return true; node = node.parentNode; } return false; }
+  function hidePop() { pop.style.display = 'none'; pop.innerHTML = ''; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function showToast(m) { toast.textContent = m; toast.style.opacity = '1'; setTimeout(function () { toast.style.opacity = '0'; }, 1400); }
+  document.addEventListener('mouseup', function (e) {
+    if (inUI(e.target)) return;
+    setTimeout(function () {
+      var sel = window.getSelection(); if (!sel || sel.isCollapsed) { hidePop(); return; }
+      var text = sel.toString().trim(); if (!text) { hidePop(); return; }
+      var range = sel.getRangeAt(0);
+      if (inUI(range.startContainer) || !content.contains(range.startContainer)) { hidePop(); return; }
+      pendingRange = range.cloneRange();
+      var r = range.getBoundingClientRect();
+      pop.innerHTML = '<button class="mini" id="annot-add">💬 Comment</button>'; pop.style.display = 'block';
+      var top = r.bottom + 6, left = r.left; if (left + 300 > innerWidth) left = innerWidth - 310; if (top + 120 > innerHeight) top = r.top - 46;
+      pop.style.top = top + 'px'; pop.style.left = Math.max(8, left) + 'px';
+      document.getElementById('annot-add').onclick = openEditor;
+    }, 1);
+  });
+  function openEditor() {
+    var quote = pendingRange ? pendingRange.toString().trim() : ''; pop.innerHTML = '';
+    var ta = document.createElement('textarea'); ta.placeholder = 'Comment on: "' + quote.slice(0, 60) + (quote.length > 60 ? '…' : '') + '"';
+    var row = document.createElement('div'); row.className = 'row';
+    var save = document.createElement('button'); save.className = 'save'; save.textContent = 'Save';
+    var cancel = document.createElement('button'); cancel.textContent = 'Cancel';
+    row.appendChild(cancel); row.appendChild(save); pop.appendChild(ta); pop.appendChild(row); ta.focus();
+    cancel.onclick = hidePop;
+    ta.addEventListener('keydown', function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') save.click(); });
+    save.onclick = function () { var c = ta.value.trim(); if (!c) { ta.focus(); return; } addAnnotation(quote, c); hidePop(); window.getSelection().removeAllRanges(); };
+  }
+  function addAnnotation(quote, comment, isGlobal) {
+    seq++; var a = { n: seq, quote: quote || '', comment: comment, mark: null, global: !!isGlobal };
+    if (!isGlobal && pendingRange) { try {
+      var m = document.createElement('mark'); m.className = 'annot'; m.dataset.n = seq; pendingRange.surroundContents(m);
+      var sup = document.createElement('sup'); sup.className = 'annot-badge'; sup.textContent = seq; m.appendChild(sup); m.title = comment;
+      m.addEventListener('click', function () { bar.classList.remove('collapsed'); var el = document.getElementById('annot-item-' + a.n); if (el) el.scrollIntoView({ block: 'nearest' }); });
+      a.mark = m;
+    } catch (e) { showToast('Noted (multi-block selection — no inline highlight)'); } }
+    anns.push(a); render();
+  }
+  document.getElementById('annot-general').onclick = openGlobal;
+  function openGlobal() {
+    bar.classList.remove('collapsed'); if (document.getElementById('annot-gedit')) { document.getElementById('annot-gta').focus(); return; }
+    var empty = listEl.querySelector('.empty'); if (empty) empty.remove();
+    var w = document.createElement('div'); w.className = 'annot-item gedit'; w.id = 'annot-gedit';
+    var ta = document.createElement('textarea'); ta.id = 'annot-gta'; ta.placeholder = 'General comment about the whole report…';
+    var row = document.createElement('div'); row.className = 'row';
+    var save = document.createElement('button'); save.className = 'save'; save.textContent = 'Save';
+    var cancel = document.createElement('button'); cancel.textContent = 'Cancel';
+    row.appendChild(cancel); row.appendChild(save); w.appendChild(ta); w.appendChild(row); listEl.insertBefore(w, listEl.firstChild); ta.focus();
+    cancel.onclick = function () { w.remove(); render(); };
+    ta.addEventListener('keydown', function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') save.click(); });
+    save.onclick = function () { var c = ta.value.trim(); if (!c) { ta.focus(); return; } w.remove(); addAnnotation(null, c, true); };
+  }
+  function editAnnotation(n) {
+    var a = anns.find(function (x) { return x.n === n; }); if (!a) return;
+    var d = document.getElementById('annot-item-' + n); if (!d) return;
+    d.classList.add('gedit');
+    d.innerHTML = '<textarea></textarea><div class="row"><button class="cancel">Cancel</button><button class="save">Save</button></div>';
+    var ta = d.querySelector('textarea'); ta.value = a.comment; ta.focus();
+    d.querySelector('.cancel').onclick = render;
+    ta.addEventListener('keydown', function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') d.querySelector('.save').click(); });
+    d.querySelector('.save').onclick = function () { var c = ta.value.trim(); if (!c) { ta.focus(); return; } a.comment = c; if (a.mark) a.mark.title = c; render(); };
+  }
+  function removeAnnotation(n) {
+    var i = anns.findIndex(function (a) { return a.n === n; }); if (i < 0) return; var a = anns[i];
+    if (a.mark && a.mark.parentNode) {
+      var s = a.mark.querySelector('sup.annot-badge'); if (s) s.remove();
+      var p = a.mark.parentNode; while (a.mark.firstChild) p.insertBefore(a.mark.firstChild, a.mark); p.removeChild(a.mark);
+    }
+    anns.splice(i, 1); render();
+  }
+  function render() {
+    countEl.textContent = anns.length;
+    if (!anns.length) { listEl.innerHTML = '<div class="empty">Select text and click <b>Comment</b> for an inline note, or add a general comment above. Nothing is saved — refresh to clear.</div>'; return; }
+    listEl.innerHTML = '';
+    anns.forEach(function (a) {
+      var d = document.createElement('div'); d.className = 'annot-item'; d.id = 'annot-item-' + a.n;
+      var label = a.global ? '<div class="g"><span class="n">' + a.n + '.</span> General note</div>'
+        : '<div class="q"><span class="n">' + a.n + '.</span> “' + esc(a.quote.length > 90 ? a.quote.slice(0, 90) + '…' : a.quote) + '”</div>';
+      d.innerHTML = '<div class="acts"><button class="edit" title="Edit">✎</button><button class="del" title="Remove">✕</button></div>' + label + '<div class="c">' + esc(a.comment) + '</div>';
+      d.querySelector('.edit').onclick = function () { editAnnotation(a.n); };
+      d.querySelector('.del').onclick = function () { removeAnnotation(a.n); };
+      listEl.appendChild(d);
+    });
+  }
+  function buildText() {
+    if (!anns.length) return 'No annotations.';
+    return 'Annotations on "' + document.title + '"\n\n' + anns.map(function (a) {
+      return a.global ? a.n + '. GENERAL COMMENT: ' + a.comment : a.n + '. QUOTE: "' + a.quote + '"\n   COMMENT: ' + a.comment;
+    }).join('\n\n');
+  }
+  document.getElementById('annot-hd').onclick = function () { bar.classList.toggle('collapsed'); };
+  document.getElementById('annot-copy').onclick = function () {
+    var text = buildText(); out.value = text; modal.style.display = 'flex'; out.focus(); out.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { showToast('Copied!'); }).catch(function () {});
+  };
+  document.getElementById('annot-modal-copy').onclick = function () { out.select(); try { document.execCommand('copy'); } catch (e) {} if (navigator.clipboard) navigator.clipboard.writeText(out.value).catch(function () {}); showToast('Copied!'); };
+  document.getElementById('annot-modal-close').onclick = function () { modal.style.display = 'none'; };
+  modal.addEventListener('click', function (e) { if (e.target === modal) modal.style.display = 'none'; });
+  document.getElementById('annot-clear').onclick = function () { if (anns.length && !confirm('Remove all ' + anns.length + ' annotations?')) return; anns.slice().forEach(function (a) { removeAnnotation(a.n); }); };
+  window.addEventListener('beforeunload', function (e) { if (anns.length) { e.preventDefault(); e.returnValue = ''; } });
+  document.addEventListener('mousedown', function (e) { if (!inUI(e.target) && pop.style.display === 'block' && !pop.contains(e.target)) { var s = window.getSelection(); if (s && s.isCollapsed) hidePop(); } });
+})();
+
+/* ---- hovercards: glossary terms + citations (hover · click-to-pin · keyboard) ---- */
+(function () {
+  var card = document.getElementById('cite-pop'), hideTimer = null, pinned = false;
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function safeUrl(u) { u = String(u == null ? '' : u); if (u.charAt(0) === '#' || /^https?:\/\//i.test(u)) return u.replace(/"/g, '%22').replace(/</g, '%3C'); return '#'; }
+  function quoteFromUrl(url) { var i = url.indexOf('#:~:text='); if (i < 0) return ''; try { var parts = url.slice(i + 9).split('&')[0].split(',').filter(function (s) { return s && s.charAt(0) !== '-' && s.charAt(s.length - 1) !== '-'; }); return decodeURIComponent(parts.join(' … ')); } catch (e) { return ''; } }
+  var SKIP = { A: 1, SUP: 1, MARK: 1, BUTTON: 1, CODE: 1, SCRIPT: 1, STYLE: 1, H1: 1, H2: 1, H3: 1, H4: 1, TEXTAREA: 1, PRE: 1, LABEL: 1 };
+  function skippable(node) { for (var p = node.parentNode; p && p.nodeType === 1; p = p.parentNode) { if (SKIP[p.tagName]) return true; if (p.classList && (p.classList.contains('term') || p.classList.contains('mermaid') || p.classList.contains('legend') || p.classList.contains('glossary-print'))) return true; if (p.id && (p.id.indexOf('annot') === 0 || p.id === 'cite-pop' || p.id === 'lb')) return true; } return false; }
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  var keys = Object.keys(GLOSSARY).sort(function (a, b) { return b.length - a.length; });
+  if (keys.length) {
+    var reAll = new RegExp('(^|[^\\w])(' + keys.map(escRe).join('|') + ')(?!\\w)(?!\\.[\\w])', 'g');
+    var root = document.querySelector('.wrap'), secOf = new WeakMap(), nodes = [], curSec = 'top', secN = 0;
+    (function collect(el) {
+      for (var c = el.firstChild; c; c = c.nextSibling) {
+        if (c.nodeType === 1) { if (c.tagName === 'H2') curSec = c.id || ('sec' + (++secN)); collect(c); }
+        else if (c.nodeType === 3 && !skippable(c) && /\S/.test(c.nodeValue)) { secOf.set(c, curSec); nodes.push(c); }
+      }
+    })(root);
+    var seen = {};
+    nodes.forEach(function (node) {
+      var text = node.nodeValue; reAll.lastIndex = 0; if (!reAll.test(text)) return; reAll.lastIndex = 0;
+      var frag = document.createDocumentFragment(), last = 0, m, changed = false, sec = secOf.get(node);
+      while ((m = reAll.exec(text))) {
+        var word = m[2]; if (!GLOSSARY[word]) continue;
+        var k = sec + '|' + word; if (seen[k]) continue; seen[k] = 1;
+        var start = m.index + m[1].length;
+        frag.appendChild(document.createTextNode(text.slice(last, start)));
+        var span = document.createElement('span'); span.className = 'term'; span.dataset.term = word; span.tabIndex = 0; span.textContent = word;
+        frag.appendChild(span); last = start + word.length; changed = true;
+      }
+      if (!changed) return;
+      frag.appendChild(document.createTextNode(text.slice(last))); node.parentNode.replaceChild(frag, node);
+    });
+    var gp = document.createElement('section'); gp.className = 'glossary-print'; gp.innerHTML = '<h2>Glossary</h2>';
+    var dl = document.createElement('dl');
+    keys.slice().sort().forEach(function (kk) { var dt = document.createElement('dt'); dt.textContent = kk; var dd = document.createElement('dd'); dd.textContent = GLOSSARY[kk].d; dl.appendChild(dt); dl.appendChild(dd); });
+    gp.appendChild(dl);
+    var f = document.querySelector('footer'); if (f) f.parentNode.insertBefore(gp, f); else root.appendChild(gp);
+  }
+  function refExtLink(hashHref) { var ref = document.querySelector(hashHref); if (!ref) return ''; var link = ref.querySelector('a'); return link ? link.getAttribute('href') : ''; }
+  function contentFor(el) {
+    if (el.matches('sup.ref a')) {
+      var href = el.getAttribute('href'), ref = document.querySelector(href); if (!ref) return '';
+      var link = ref.querySelector('a'), title = link ? link.textContent : ref.textContent.replace(/^\s*\d+\.\s*/, ''), url = link ? link.getAttribute('href') : '';
+      var noteEl = ref.querySelector('.note'), quote = quoteFromUrl(url || ''), note = noteEl ? noteEl.textContent : '';
+      return '<div class="ct">[' + href.replace('#ref', '') + '] ' + esc(title) + '</div>' +
+        (quote ? '<div class="cq">' + esc(quote) + '</div>' : (note ? '<div class="cnote">' + esc(note) + '</div>' : '')) +
+        '<div class="cbtns">' + (url ? '<a class="cbtn primary" target="_blank" rel="noopener" href="' + safeUrl(url) + '">Open source ↗</a>' : '') + '<a class="cbtn" href="' + safeUrl(href) + '">See in references</a></div>';
+    }
+    var key = el.dataset.term, g = GLOSSARY[key]; if (!g) return ''; var btns = '';
+    if (g.u) { var ext = g.u.charAt(0) === '#' ? refExtLink(g.u) : g.u; if (ext) btns += '<a class="cbtn primary" target="_blank" rel="noopener" href="' + safeUrl(ext) + '">Open source ↗</a>'; btns += '<a class="cbtn" href="' + safeUrl(g.u) + '">See reference</a>'; }
+    return '<div class="ct">' + esc(key) + '</div><div class="cq">' + esc(g.d) + '</div>' + (btns ? '<div class="cbtns">' + btns + '</div>' : '');
+  }
+  function place(el) { var r = el.getBoundingClientRect(), top = r.bottom + 6, left = r.left; if (left + 350 > innerWidth) left = innerWidth - 356; if (top + 175 > innerHeight) top = r.top - 175; card.style.top = Math.max(8, top) + 'px'; card.style.left = Math.max(8, left) + 'px'; }
+  function show(el) { var html = contentFor(el); if (!html) return; clearTimeout(hideTimer); card.innerHTML = html; card.style.display = 'block'; place(el); }
+  function scheduleHide() { if (pinned) return; hideTimer = setTimeout(function () { card.style.display = 'none'; }, 240); }
+  document.querySelectorAll('sup.ref a, span.term').forEach(function (el) {
+    el.addEventListener('mouseenter', function () { if (!pinned) show(el); });
+    el.addEventListener('mouseleave', scheduleHide);
+    el.addEventListener('focus', function () { show(el); });
+    el.addEventListener('blur', scheduleHide);
+    el.addEventListener('click', function (e) { if (el.matches('span.term')) { e.preventDefault(); clearTimeout(hideTimer); show(el); pinned = true; } });
+  });
+  card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+  card.addEventListener('mouseleave', scheduleHide);
+  document.addEventListener('click', function (e) { if (pinned && !card.contains(e.target) && !(e.target.closest && e.target.closest('sup.ref a, span.term'))) { pinned = false; card.style.display = 'none'; } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { pinned = false; card.style.display = 'none'; } });
+  document.querySelectorAll('a[href^="http"]').forEach(function (a) { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener'); });
+})();
+
+/* ---- Mermaid render + click-to-zoom/pan lightbox with persistent legend ---- */
+if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'antiscript', flowchart: { htmlLabels: true, useMaxWidth: true }, themeVariables: { fontFamily: 'inherit', fontSize: '13px' } });
+(async function () {
+  if (!document.querySelector('.mermaid')) return;
+  if (typeof mermaid === 'undefined') { document.querySelectorAll('.mermaid').forEach(function (m) { m.textContent = '⚠ Diagram needs internet (Mermaid failed to load).'; m.style.whiteSpace = 'normal'; }); return; }
+  /* Render each diagram in isolation: one bad diagram shows an inline error but must not
+     abort the others' rendering or the zoom/pan wiring below (a single rejected mermaid.run
+     over all blocks silently kills zoom on the whole page). */
+  var all = document.querySelectorAll('.mermaid');
+  for (var bi = 0; bi < all.length; bi++) {
+    var block = all[bi], src = block.textContent;
+    try { await mermaid.run({ nodes: [block] }); }
+    catch (e) {
+      block.innerHTML = ''; block.style.whiteSpace = 'normal'; block.style.cursor = 'default';
+      var msg = document.createElement('div'); msg.className = 'mermaid-error';
+      msg.textContent = '⚠ Diagram failed to render: ' + (e && e.message ? String(e.message).split('\n')[0] : 'syntax error');
+      var raw = document.createElement('pre'); raw.textContent = src.trim();
+      block.appendChild(msg); block.appendChild(raw);
+    }
+  }
+  var canZoom = (typeof svgPanZoom !== 'undefined');
+  document.querySelectorAll('.mermaid').forEach(function (m, i) {
+    var svg = m.querySelector('svg'); if (!svg) return;
+    var node = m.previousElementSibling, heading = null, legendHTML = null;
+    while (node) { if (/^H[1-3]$/.test(node.tagName)) { heading = node.textContent.trim(); break; } if (node.classList && node.classList.contains('legend') && !legendHTML) legendHTML = node.outerHTML; node = node.previousElementSibling; }
+    heading = heading || ('Diagram ' + (i + 1));
+    var fig = document.createElement('div'); fig.className = 'figure'; m.parentNode.insertBefore(fig, m); fig.appendChild(m);
+    if (!canZoom) return;
+    var hint = document.createElement('div'); hint.className = 'zoom-hint'; hint.textContent = '⤢ click to zoom'; fig.appendChild(hint);
+    m.addEventListener('click', function () { openLightbox(svg, heading, legendHTML); });
+  });
+  if (!canZoom) return;
+  var lb = document.getElementById('lb'), stage = document.getElementById('lb-stage'), legendBox = document.getElementById('lb-legend'), pz = null;
+  function openLightbox(svg, title, legendHTML) {
+    document.getElementById('lb-title').textContent = title;
+    if (legendHTML) { legendBox.innerHTML = legendHTML; legendBox.classList.add('on'); } else { legendBox.innerHTML = ''; legendBox.classList.remove('on'); }
+    stage.innerHTML = ''; var clone = svg.cloneNode(true); clone.removeAttribute('style'); clone.setAttribute('width', '100%'); clone.setAttribute('height', '100%'); stage.appendChild(clone);
+    lb.classList.add('open'); pz = svgPanZoom(clone, { zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.3, maxZoom: 20, zoomScaleSensitivity: 0.4 });
+  }
+  function closeLb() { lb.classList.remove('open'); if (pz) { pz.destroy(); pz = null; } stage.innerHTML = ''; legendBox.classList.remove('on'); }
+  document.getElementById('lb-close').onclick = closeLb;
+  document.getElementById('lb-in').onclick = function () { pz && pz.zoomIn(); };
+  document.getElementById('lb-out').onclick = function () { pz && pz.zoomOut(); };
+  document.getElementById('lb-reset').onclick = function () { pz && (pz.resize(), pz.fit(), pz.center()); };
+  lb.addEventListener('click', function (e) { if (e.target === lb) closeLb(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLb(); });
+})();
+</script>
+</body>
+</html>

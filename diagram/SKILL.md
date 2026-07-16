@@ -1,6 +1,6 @@
 ---
 name: diagram
-description: Mermaid diagram conventions for PR descriptions and code review — type selection, subgraphs, labeled edges, scope-to-change, delta markers. Use when authoring an architecture or change-flow diagram.
+description: Mermaid diagram conventions for PR descriptions, code review, and zoomable HTML reports/explanations — type selection, subgraphs, labeled edges, scope-to-change, delta markers, and click-to-zoom/pan + persistent legend. Use when authoring an architecture or change-flow diagram. Loaded by the `report` skill and `/explain`.
 ---
 
 Author a ```mermaid``` diagram of a change's flow/structure. Renders natively on GitHub; preview locally via `:MermaidPreview`.
@@ -25,6 +25,7 @@ Trivial change (1-2 small files, no flow impact) → skip the diagram.
 - **Subgraphs** for grouping (jobs, layers, bounded contexts). Label them.
 - **Edge labels: short plain words only** (`-->|cache miss|`, `-->|extracted block|`). Never put `+`/`~`/`-` markers or quotes in an edge label — markers belong on nodes; they break edge-label parsing.
 - Keep node labels concise; fuller detail goes in the legend/caption or prose, not crammed into the diagram.
+- **Line breaks in labels: `<br/>` only, never `\n`.** `\n` is not a valid break in Mermaid 11 — it fails the parse (and one failed diagram kills zoom/pan for the whole page). Prefer not breaking at all: a label needing multiple lines is too long — shorten it and push detail to the legend/caption. Applies to node labels AND `sequenceDiagram` messages.
 
 ## Delta mode (code review)
 
@@ -68,3 +69,14 @@ Static structure of what the change introduces (jobs, services, flow). No delta 
 - spec-check job — runs in parallel with AI review, no Bedrock access
 - DECIDE — gate: spec present, opt-out label, or all files allowlisted
 ```
+
+## Zoomable HTML mode (reports & explanations)
+
+For standalone HTML (the `report` skill, `/explain`) — not GitHub markdown. All the label/scope/legend rules above still apply; this adds rendering + interaction:
+
+- Load both CDNs: `mermaid@11/dist/mermaid.min.js` **and** `svg-pan-zoom@3.6.1`. Init `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'antiscript', flowchart:{ htmlLabels:true, useMaxWidth:true } })`, then render **one block at a time** (`mermaid.run({ nodes:[block] })` in a loop, each in its own try/catch) so a single bad diagram shows an inline error instead of aborting every diagram's render + zoom wiring. The scaffold already does this — don't revert it to a single `mermaid.run({ querySelector:'.mermaid' })`.
+- **Click-to-zoom/pan**: wrap each rendered `.mermaid` and open a fullscreen lightbox on click, driven by `svgPanZoom` (scroll = zoom, drag = pan, Fit button, Esc to close). Complex diagrams are illegible zoomed-out — this is how the reader actually reads them.
+- **Persistent legend**: put a `<div class="legend">…</div>` **immediately before** the `<div class="mermaid">`. The lightbox lifts that legend into an overlay box that stays visible while zoomed/panned — so the *what+why* key never scrolls away from the *where*. (Legend content per Delta/Architecture mode above.)
+- Node labels stay concise (detail lives in the legend), because tiny in-node text is unreadable until zoomed.
+
+Don't hand-roll this — the `report` skill's `assets/report-template.html` already implements the init + lightbox + legend-lift; copy that scaffold and just author the `flowchart` + legend.
