@@ -13,6 +13,8 @@ TDD rules. Apply to all test-writing workflows.
 2. **Green** — minimal impl to pass. Run. Confirm pass.
 3. **Refactor** — clean up. Run. Confirm still pass.
 
+**ONE cycle at a time.** Write exactly ONE failing test, drive it green, refactor — THEN write the next. NEVER author multiple tests up front: a batch of failing tests is test-first-in-bulk, not TDD — each test must earn its implementation before the next exists. The red→green→refactor loop is per-behavior and strictly serial.
+
 Test MUST fail before fix, pass after. Both states demonstrated. No fail→pass transition = test validates nothing.
 
 RED must exercise the REAL production code, not a duplicate of the logic copied into the test file — a test that passes immediately proves nothing. If the real code is hard to bootstrap (facades, framework glue, UI/keymap/"shell" wiring), that's the signal to extract the logic into a real collaborator (a unit with its own reason to exist) and test THAT — not to skip. No layer is exempt: "it's just wiring/UI" is not an exemption. Make the thin remaining shell fail loud (visible error/notify), never swallow.
@@ -45,8 +47,8 @@ Never skip "verify fail without fix" step.
 
 Existing behavior has tests but contract must change:
 
-1. **New tests first** — write tests matching new contract expectations. Run → confirm FAILS.
-2. **Implement** — change code to satisfy new contract. Run → new tests pass.
+1. **New test first** — write ONE test for the new contract. Run → confirm FAILS. (Same serial rule: one behavior per cycle, not the whole new contract up front.)
+2. **Implement** — minimal change to satisfy that test. Run → it passes. Repeat 1–2 per behavior until the new contract is covered.
 3. **Audit old tests** — review broken old-contract tests one by one:
    - Failure makes sense (contract changed)? Remove test or rewrite to mirror intent under new contract.
    - Failure unexpected (unrelated breakage)? Fix — regression found.
