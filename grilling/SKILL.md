@@ -10,10 +10,15 @@ Work the tree in **rounds**. The **frontier** is every decision whose prerequisi
 Each question should be formatted like so:
 
 ```
-❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs>
 
-➡️ <your recommended answer>
+- **(a)** <option> — <what it costs or implies>
+- **(b)** <option> — <what it costs or implies>
+
+➡️ **(a)** — <why, one or two sentences>
 ```
+
+Never inline the options into a prose sentence. When a question offers choices, each choice is its own bullet on its own line, even if there are only two. Keep the body above them short — the setup a reader needs to pick, not the full argument. The recommendation opens with the letter you picked, then the reason; if a pick has a condition that would flip it, that's one more sentence, not a second paragraph.
 
 Each round the user answers reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
 
