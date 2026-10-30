@@ -56,6 +56,14 @@ Existing behavior has tests but contract must change:
 
 Key: old test removal only after verifying new contract tests cover same behavioral intent. Don't lose coverage silently.
 
+## Bugs
+
+- Find out why it breaks before proposing a fix. If the fix is a guard
+  (a null check, a clamp, a try/catch), explain why the cause can't be fixed
+  where it starts. Never add a guard without knowing what triggers it.
+- The reproducing test has to fail because of the bug, not because of setup,
+  a missing fixture or a typo. Check the failure message before fixing.
+
 ## Regression
 
 After any fix/change: run FULL test suite for affected area. No regressions.
