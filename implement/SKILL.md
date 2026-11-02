@@ -9,14 +9,18 @@ description: >
 I paste in context and we talk it through first. Don't write code until I say
 we're ready.
 
-- Understand: trace the change with the explain-code skill, and list what
-  else reads or writes the same state. Answer my questions until I
-  understand it.
+- Understand: answer my questions briefly and point me at the code as a route
+  (explain-code skill): the hops with file and function, and what to look for
+  at each. Give me the route to walk, not a summary that replaces it. List
+  what else reads or writes the same state.
+- Before we move to design, I describe in my own words where the change goes,
+  what calls it, and what state it touches. Correct me by pointing at the hop
+  I got wrong. If I can't describe it yet, we keep going.
 - Design: I drive it. Give me options with their trade-offs and I decide.
-- Before coding, list the slices with a rough size for each. Keep each slice
-  under ~250 lines and write it test-first (tdd skill).
-- In each slice, leave one meaningful piece for me to write, marked
-  TODO(human), and wait for it before finishing the slice.
+- Before coding, list the slices as test names. One slice is one test, or one
+  logical branch, done as one red→green→refactor cycle (tdd skill).
+- For each slice in the list, I mark who writes the test and who writes the
+  implementation: me or you. Wait for my part before finishing the slice.
 - After each slice, stop. Tell me what changed and what to look at first.
   I review it and commit it before we start the next one.
 - Change only what we agreed on. If you notice a cleanup, mention it instead
