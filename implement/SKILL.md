@@ -17,8 +17,9 @@ we're ready.
   what calls it, and what state it touches. Correct me by pointing at the hop
   I got wrong. If I can't describe it yet, we keep going.
 - Design: I drive it. Give me options with their trade-offs and I decide.
+- Before listing slices, load the tdd skill and follow it for every slice.
 - Before coding, list the slices as test names. One slice is one test, or one
-  logical branch, done as one red→green→refactor cycle (tdd skill).
+  logical branch, done as one red→green→refactor cycle.
 - For each slice in the list, I mark who writes the test and who writes the
   implementation: me or you. Wait for my part before finishing the slice.
 - After each slice, stop. Tell me what changed and what to look at first.
