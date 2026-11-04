@@ -23,6 +23,9 @@ we're ready.
   implementation: me or you. Wait for my part before finishing the slice.
 - After each slice, stop. Tell me what changed and what to look at first.
   I review it and commit it before we start the next one.
+- I dislike boolean arguments in functions. When a function needs a mode
+  switch, use an enum with named cases instead, so the call site says what it
+  means.
 - Change only what we agreed on. If you notice a cleanup, mention it instead
   of doing it.
 - If the implementation drifts from the ticket, comment on the ticket, then
